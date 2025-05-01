@@ -60,14 +60,7 @@ export default function Hero() {
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#000423]/70 via-[#000423]/50 to-[#000423]/70 z-10"></div>
 
-          {/* Sound Toggle Button */}
-          <button
-            onClick={toggleMute}
-            className="absolute top-4 right-4 sm:top-8 sm:right-8 z-50 p-2 sm:p-3 rounded-full bg-[#000423]/20 backdrop-blur-md border border-[#8E8E9D]/30 hover:bg-[#000423]/40 transition-all duration-300 text-[#B5B5C3]"
-            aria-label={isMuted ? "Unmute background audio" : "Mute background audio"}
-          >
-            {isMuted ? <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />}
-          </button>
+         
         </>
       )}
 

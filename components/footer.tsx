@@ -109,7 +109,11 @@ export default function Footer() {
         </div>
 
         {/* Chat bubble - positioned with higher z-index to avoid conflicts */}
-        <motion.div
+       
+
+        {/* Scroll to top button - positioned with proper spacing to avoid overlap
+        
+         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1, duration: 0.5 }}
@@ -146,8 +150,7 @@ export default function Footer() {
             </div>
           </button>
         </motion.div>
-
-        {/* Scroll to top button - positioned with proper spacing to avoid overlap */}
+        */}
         <AnimatePresence>
           {showScrollTop && (
             <motion.button

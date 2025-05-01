@@ -157,7 +157,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="pt-6">
+            {/*  <div className="pt-6">
                 <h4 className="text-lg font-semibold mb-4 text-gray-800">Our Service Areas</h4>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {["New York", "Los Angeles", "Chicago", "Miami", "San Francisco", "Seattle"].map((city) => (
@@ -166,7 +166,7 @@ export default function Contact() {
                     </span>
                   ))}
                 </div>
-              </div>
+              </div>*/}
             </div>
           </motion.div>
 
