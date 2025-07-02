@@ -128,8 +128,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">Email</p>
-                    <a href="mailto:lumion.corps@gmail.com" className="text-gray-800 hover:text-[#8E8E9D] transition-colors">
-                      lumion.corps@gmail.com
+                    <a href="mailto:vitrusrwanda@gmail.com" className="text-gray-800 hover:text-[#8E8E9D] transition-colors">
+                    vitrusrwanda@gmail.com
                     </a>
                   </div>
                 </div>
