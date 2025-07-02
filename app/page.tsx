@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#000423] text-white overflow-hidden">
       <Hero />
-      <Portfolio />
+     {/* <Portfolio /> */} 
       <HowItWorks />
       <AboutUs />
       <Services />
