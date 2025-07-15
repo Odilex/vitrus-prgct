@@ -29,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${outfit.variable} ${inter.variable} font-sans`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`scroll-smooth ${outfit.variable} ${inter.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <FloatingNav />
           {children}
