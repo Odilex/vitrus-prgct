@@ -8,18 +8,25 @@ export default function Hero() {
   const [isMuted, setIsMuted] = useState(true)
   const [isLoaded, setIsLoaded] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const [showFixedLogo, setShowFixedLogo] = useState(false)
   const ref = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  })
+  const { scrollY } = useScroll()
 
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
-  const scale = useTransform(scrollYProgress, [0, 0.8], [1, 0.8])
-  const y = useTransform(scrollYProgress, [0, 0.8], [0, 100])
+  const opacity = useTransform(scrollY, [0, 0.8], [1, 0])
+  const scale = useTransform(scrollY, [0, 0.8], [1, 0.8])
+  const y = useTransform(scrollY, [0, 0.8], [0, 100])
 
   useEffect(() => {
     setIsClient(true)
+    const handleScroll = () => {
+      if (window.scrollY > window.innerHeight * 0.5) {
+        setShowFixedLogo(true)
+      } else {
+        setShowFixedLogo(false)
+      }
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   const toggleMute = () => {
@@ -130,6 +137,25 @@ export default function Hero() {
           </motion.div>
         </motion.div>
       </motion.div>
+
+      {/* Fixed Logo on Scroll */}
+      {showFixedLogo && (
+        <motion.div
+          initial={{ opacity: 0, x: -50, y: -50 }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          exit={{ opacity: 0, x: -50, y: -50 }}
+          transition={{ duration: 0.5 }}
+          className="fixed top-6 left-6 z-50 bg-transparent"
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="font-outfit text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+            Vitrus
+          </div>
+          <div className="text-sm md:text-lg bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-transparent bg-clip-text font-semibold">
+            Digital Journeys
+          </div>
+        </motion.div>
+      )}
 
       {/* Enhanced Scroll Indicator */}
       <motion.div

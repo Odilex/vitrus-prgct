@@ -57,8 +57,8 @@ export default function Contact() {
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm">Email</p>
-                    <a href="mailto:vitrusrwanda@gmail.com" className="text-gray-800 hover:text-[#8E8E9D] transition-colors">
-                    vitrusrwanda@gmail.com
+                    <a href="mailto:contact@vitrus.rw" className="text-gray-800 hover:text-[#8E8E9D] transition-colors">
+                    contact@vitrus.rw
                     </a>
                   </div>
                 </div>
@@ -104,7 +104,7 @@ export default function Contact() {
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <form action="https://formsubmit.co/vitrusrwanda@gmail.com" method="POST" className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
+            <form action="https://formsubmit.co/contact@vitrus.rw" method="POST" className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
               <div className="mb-6">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                   Your Name
