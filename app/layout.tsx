@@ -32,6 +32,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.png" type="image/png" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-916894803341135"
+          crossOrigin="anonymous"
+        ></script>
       </head>
       <body className={`scroll-smooth ${outfit.variable} ${inter.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>

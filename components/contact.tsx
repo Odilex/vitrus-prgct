@@ -7,6 +7,7 @@ import { Send, Mail, Phone, MapPin, Check } from "lucide-react"
 export default function Contact() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.2 })
+  const [submitted, setSubmitted] = useState(false)
 
   return (
     <section ref={ref} id="contact" className="py-24 bg-[#F5F5F7] relative overflow-hidden">
@@ -104,80 +105,93 @@ export default function Contact() {
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <form action="https://formsubmit.co/contact@vitrus.rw" method="POST" className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-              <div className="mb-6">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                  placeholder="John Doe"
-                />
+            {submitted ? (
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center">
+                <Check className="w-12 h-12 text-green-500 mb-4" />
+                <h3 className="text-2xl font-bold mb-2 text-gray-800 font-outfit">Thank You!</h3>
+                <p className="text-gray-600 text-center mb-2">Your message has been sent successfully. We appreciate your interest and will get back to you soon.</p>
               </div>
-
-              <div className="mb-6">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="project" className="block text-sm font-medium text-gray-700 mb-2">
-                  Project Type
-                </label>
-                <select
-                  id="project"
-                  name="project"
-                  required
-                  defaultValue=""
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                >
-                  <option value="" disabled>
-                    Select your project type
-                  </option>
-                  <option value="residential">Residential Property</option>
-                  <option value="commercial">Commercial Space</option>
-                  <option value="cultural">Museum or Gallery</option>
-                  <option value="hospitality">Hotel or Resort</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div className="mb-6">
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  required
-                  rows={4}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                  placeholder="Tell us about your project..."
-                ></textarea>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-lg flex items-center justify-center hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300 group"
-                aria-label="Submit contact form"
+            ) : (
+              <form
+                action="https://formsubmit.co/contact@vitrus.rw"
+                method="POST"
+                className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm"
+                onSubmit={() => setSubmitted(true)}
               >
-                Send Message
-                <Send className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" />
-              </button>
-            </form>
+                <div className="mb-6">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
+                    placeholder="John Doe"
+                  />
+                </div>
+
+                <div className="mb-6">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
+                    placeholder="john@example.com"
+                  />
+                </div>
+
+                <div className="mb-6">
+                  <label htmlFor="project" className="block text-sm font-medium text-gray-700 mb-2">
+                    Project Type
+                  </label>
+                  <select
+                    id="project"
+                    name="project"
+                    required
+                    defaultValue=""
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
+                  >
+                    <option value="" disabled>
+                      Select your project type
+                    </option>
+                    <option value="residential">Residential Property</option>
+                    <option value="commercial">Commercial Space</option>
+                    <option value="cultural">Museum or Gallery</option>
+                    <option value="hospitality">Hotel or Resort</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div className="mb-6">
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    required
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
+                    placeholder="Tell us about your project..."
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full px-6 py-3 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-lg flex items-center justify-center hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300 group"
+                  aria-label="Submit contact form"
+                >
+                  Send Message
+                  <Send className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" />
+                </button>
+              </form>
+            )}
           </motion.div>
         </div>
       </div>
