@@ -40,7 +40,7 @@ export default function FloatingNav() {
 
   const navItems = [
     { id: "hero", label: "Home", icon: <Home className="w-4 h-4" /> },
-    { id: "portfolio", label: "Portfolio", icon: <ImageIcon className="w-4 h-4" /> },
+    {/* id: "portfolio", label: "Portfolio", icon: <ImageIcon className="w-4 h-4" /> */ },
     { id: "how-it-works", label: "Process", icon: <Info className="w-4 h-4" /> },
     { id: "about", label: "About", icon: <Users className="w-4 h-4" /> },
     { id: "services", label: "Services", icon: <Layers className="w-4 h-4" /> },
@@ -57,10 +57,10 @@ export default function FloatingNav() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50"
+            className="fixed top-6 left-[25%] transform -translate-x-1/2 z-50"
           >
-            <div className="bg-[#000423]/70 backdrop-blur-lg border border-white/10 rounded-full px-3 py-2.5 shadow-lg shadow-black/10">
-              <div className="hidden md:flex items-center space-x-2">
+            <div className="bg-[#000423]/70 backdrop-blur-lg border border-white/10 rounded-full px-4 py-2.5 shadow-lg shadow-black/10">
+              <div className="hidden md:flex items-center space-x-3">
                 {navItems.map((item) => (
                   <a
                     key={item.id}
