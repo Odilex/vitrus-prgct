@@ -113,7 +113,7 @@ export default function Contact() {
               </div>
             ) : (
               <form
-                action="https://formsubmit.co/contact@vitrus.rw"
+                action="https://formsubmit.co/vitrusrwanda@gmail.com"
                 method="POST"
                 className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm"
                 onSubmit={() => setSubmitted(true)}
@@ -143,6 +143,21 @@ export default function Contact() {
                     required
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
                     placeholder="john@example.com"
+                  />
+                </div>
+
+                <div className="mb-6">
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    required
+                    pattern="[+]?\d{7,15}"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
+                    placeholder="e.g. +250780217221"
                   />
                 </div>
 
@@ -193,6 +208,35 @@ export default function Contact() {
               </form>
             )}
           </motion.div>
+        </div>
+        {/* Newsletter Subscription */}
+        <div className="mt-12 max-w-md mx-auto">
+          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+            <h4 className="text-xl font-bold mb-2 text-gray-800 font-outfit text-center">Subscribe to our Newsletter</h4>
+            <p className="text-gray-600 text-center mb-4 text-sm">Get updates about our latest projects and offers.</p>
+            <form
+              action="https://formsubmit.co/vitrusrwanda@gmail.com"
+              method="POST"
+              className="flex flex-col sm:flex-row gap-3 items-center justify-center"
+              target="_blank"
+            >
+              <input
+                type="email"
+                name="newsletter-email"
+                required
+                className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
+                placeholder="Your email address"
+                aria-label="Email address"
+              />
+              <button
+                type="submit"
+                className="px-6 py-2 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300"
+                aria-label="Subscribe"
+              >
+                Subscribe
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </section>
