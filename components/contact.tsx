@@ -113,7 +113,7 @@ export default function Contact() {
               </div>
             ) : (
               <form
-                action="https://formsubmit.co/vitrusrwanda@gmail.com"
+                action="https://formspree.io/f/xyzpkaqn"
                 method="POST"
                 className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm"
                 onSubmit={() => setSubmitted(true)}
@@ -215,14 +215,14 @@ export default function Contact() {
             <h4 className="text-xl font-bold mb-2 text-gray-800 font-outfit text-center">Subscribe to our Newsletter</h4>
             <p className="text-gray-600 text-center mb-4 text-sm">Get updates about our latest projects and offers.</p>
             <form
-              action="https://formsubmit.co/vitrusrwanda@gmail.com"
+              action="https://formspree.io/f/xyzpkaqn"
               method="POST"
               className="flex flex-col sm:flex-row gap-3 items-center justify-center"
               target="_blank"
             >
               <input
                 type="email"
-                name="newsletter-email"
+                name="email"
                 required
                 className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
                 placeholder="Your email address"
