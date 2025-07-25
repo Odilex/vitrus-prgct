@@ -61,9 +61,9 @@ export default function FloatingNav() {
           >
             <div className="bg-[#000423]/70 backdrop-blur-lg border border-white/10 rounded-full px-4 py-2.5 shadow-lg shadow-black/10">
               <div className="hidden md:flex items-center space-x-3">
-                {navItems.map((item) => (
+                {navItems.map((item, idx) => (
                   <a
-                    key={item.id}
+                    key={item.id || idx}
                     href={`#${item.id}`}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center ${
                       activeSection === item.id
@@ -122,13 +122,13 @@ export default function FloatingNav() {
               transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
               className="flex flex-col items-center space-y-4 sm:space-y-6 w-full px-6 max-h-[80vh] overflow-y-auto py-12"
             >
-              {navItems.map((item, index) => (
+              {navItems.map((item, idx) => (
                 <motion.a
-                  key={item.id}
+                  key={item.id || idx}
                   href={`#${item.id}`}
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 + index * 0.1, type: "spring", stiffness: 100 }}
+                  transition={{ delay: 0.1 + idx * 0.1, type: "spring", stiffness: 100 }}
                   className={`text-lg sm:text-xl font-medium flex items-center px-6 py-3 rounded-full w-full justify-center ${
                     activeSection === item.id
                       ? "bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white"

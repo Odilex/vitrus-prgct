@@ -138,24 +138,25 @@ export default function Hero() {
         </motion.div>
       </motion.div>
 
-      {/* Fixed Logo on Scroll */}
-      {showFixedLogo && (
+      {/* Fixed Logo on Scroll (always visible, text animates in) */}
+      <motion.div
+        initial={{ opacity: 1, x: 0, y: 0 }}
+        animate={{ opacity: 1, x: 0, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="fixed top-6 left-6 z-50 flex items-center bg-transparent"
+        style={{ pointerEvents: 'none' }}
+      >
+        <img src="/logo.png" alt="Vitrus Logo" className="h-16 w-auto drop-shadow-lg transition-all duration-300" />
         <motion.div
-          initial={{ opacity: 0, x: -50, y: -50 }}
-          animate={{ opacity: 1, x: 0, y: 0 }}
-          exit={{ opacity: 0, x: -50, y: -50 }}
+          initial={{ opacity: 0, x: -20 }}
+          animate={showFixedLogo ? { opacity: 1, x: 0, marginLeft: 8 } : { opacity: 0, x: -20, marginLeft: 24 }}
           transition={{ duration: 0.5 }}
-          className="fixed top-6 left-6 z-50 bg-transparent"
-          style={{ pointerEvents: 'none' }}
+          className="flex flex-col"
         >
-          <div className="font-outfit text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
-            Vitrus
-          </div>
-          <div className="text-sm md:text-lg bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-transparent bg-clip-text font-semibold">
-            Digital Journeys
-          </div>
+          <span className="font-outfit text-2xl md:text-3xl font-bold text-white drop-shadow-lg">Vitrus</span>
+          <span className="text-sm md:text-lg bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-transparent bg-clip-text font-semibold">Digital Journeys</span>
         </motion.div>
-      )}
+      </motion.div>
 
       {/* Enhanced Scroll Indicator */}
       <motion.div

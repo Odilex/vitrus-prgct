@@ -36,9 +36,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           <div>
             <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold">V</span>
-              </div>
+              <img src="/logo.png" alt="Vitrus Logo" className="h-10 w-auto mr-3 rounded-lg bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] p-1" />
               <h3 className="text-white font-bold text-xl font-outfit">Vitrus</h3>
             </div>
             <p className="text-gray-400 mb-6">
