@@ -1,13 +1,14 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { motion, useInView } from "framer-motion"
+import { motion, AnimatePresence, useInView } from "framer-motion"
 import { Send, Mail, Phone, MapPin, Check } from "lucide-react"
 
 export default function Contact() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.2 })
   const [submitted, setSubmitted] = useState(false)
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
 
   return (
     <section ref={ref} id="contact" className="py-24 bg-[#F5F5F7] relative overflow-hidden">
@@ -214,28 +215,57 @@ export default function Contact() {
           <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
             <h4 className="text-xl font-bold mb-2 text-gray-800 font-outfit text-center">Subscribe to our Newsletter</h4>
             <p className="text-gray-600 text-center mb-4 text-sm">Get updates about our latest projects and offers.</p>
-            <form
-              action="https://formspree.io/f/xyzpkaqn"
-              method="POST"
-              className="flex flex-col sm:flex-row gap-3 items-center justify-center"
-              target="_blank"
-            >
-              <input
-                type="email"
-                name="email"
-                required
-                className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                placeholder="Your email address"
-                aria-label="Email address"
-              />
-              <button
-                type="submit"
-                className="px-6 py-2 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300"
-                aria-label="Subscribe"
-              >
-                Subscribe
-              </button>
-            </form>
+            <AnimatePresence mode="wait">
+              {!newsletterSubmitted ? (
+                <motion.form
+                  key="form"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4 }}
+                  className="flex flex-col sm:flex-row gap-3 items-center justify-center"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const formData = new FormData(form);
+                    await fetch('https://formspree.io/f/xyzpkaqn', {
+                      method: 'POST',
+                      body: formData,
+                      headers: { 'Accept': 'application/json' },
+                    });
+                    setNewsletterSubmitted(true);
+                  }}
+                >
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
+                    placeholder="Your email address"
+                    aria-label="Email address"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300"
+                    aria-label="Subscribe"
+                  >
+                    Subscribe
+                  </button>
+                </motion.form>
+              ) : (
+                <motion.div
+                  key="thanks"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4 }}
+                  className="w-full text-center flex flex-col items-center justify-center"
+                >
+                  <span className="text-2xl text-green-600 font-bold mb-2">Thank you!</span>
+                  <span className="text-gray-700">You’ve been subscribed to our newsletter.</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
