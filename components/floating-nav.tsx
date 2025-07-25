@@ -59,39 +59,38 @@ export default function FloatingNav() {
             transition={{ duration: 0.3 }}
             className="fixed top-6 left-[25%] transform -translate-x-1/2 z-50"
           >
-            <div className="bg-[#000423]/70 backdrop-blur-lg border border-white/10 rounded-full px-4 py-2.5 shadow-lg shadow-black/10">
-              <div className="hidden md:flex items-center space-x-3">
-                {navItems.map((item, idx) => (
+            <div className="flex md:block flex-row-reverse items-center fixed md:static top-4 right-4 z-[100] md:z-50 w-auto px-2 sm:px-4" style={{gap: 8}}>
+              <button
+                onClick={() => setIsMenuOpen(true)}
+                className="md:hidden p-2.5 text-white rounded-full bg-[#000423] hover:bg-[#1a1e3a] transition-colors duration-300"
+                aria-label="Open navigation menu"
+                style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <div className="hidden md:flex bg-[#000423]/70 backdrop-blur-lg border border-white/10 rounded-full px-3 py-2 shadow-lg shadow-black/10 md:static items-center">
+                <div className="flex items-center space-x-3">
+                  {navItems.map((item, idx) => (
+                    <a
+                      key={item.id || idx}
+                      href={`#${item.id}`}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center ${
+                        activeSection === item.id
+                          ? "bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white shadow-sm"
+                          : "text-white/80 hover:bg-white/10 hover:text-white"
+                      }`}
+                    >
+                      {item.icon}
+                      <span className="ml-1.5">{item.label}</span>
+                    </a>
+                  ))}
                   <a
-                    key={item.id || idx}
-                    href={`#${item.id}`}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center ${
-                      activeSection === item.id
-                        ? "bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white shadow-sm"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }`}
+                    href="#contact"
+                    className="ml-2 px-5 py-2 bg-white text-[#000423] rounded-full text-sm font-medium hover:bg-opacity-90 transition-all duration-300 hover:shadow-md hover:shadow-white/10"
                   >
-                    {item.icon}
-                    <span className="ml-1.5">{item.label}</span>
+                    Book a Demo
                   </a>
-                ))}
-                <a
-                  href="#contact"
-                  className="ml-2 px-5 py-2 bg-white text-[#000423] rounded-full text-sm font-medium hover:bg-opacity-90 transition-all duration-300 hover:shadow-md hover:shadow-white/10"
-                >
-                  Book a Demo
-                </a>
-              </div>
-
-              {/* Mobile menu button */}
-              <div className="md:hidden flex items-center">
-                <button
-                  onClick={() => setIsMenuOpen(true)}
-                  className="p-2.5 text-white rounded-full hover:bg-white/10 transition-colors duration-300"
-                  aria-label="Open navigation menu"
-                >
-                  <Menu className="w-6 h-6" />
-                </button>
+                </div>
               </div>
             </div>
           </motion.div>

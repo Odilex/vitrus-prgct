@@ -43,11 +43,15 @@ export default function Footer() {
               Transforming physical spaces into captivating digital experiences through cutting-edge 3D tour technology.
             </p>
             <div className="flex space-x-4">
-              <SocialIcon icon={<Facebook className="w-4 h-4" />} label="Facebook" />
-              <SocialIcon icon={<Twitter className="w-4 h-4" />} label="Twitter" />
-              <SocialIcon icon={<Instagram className="w-4 h-4" />} label="Instagram" />
-              <SocialIcon icon={<Youtube className="w-4 h-4" />} label="YouTube" />
-              <SocialIcon icon={<Linkedin className="w-4 h-4" />} label="LinkedIn" />
+              <a href="https://x.com/Vitrusrwanda" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="hover:text-[#1DA1F2] transition-colors">
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a href="https://www.instagram.com/vitrus_rw/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-[#E1306C] transition-colors">
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a href="https://www.linkedin.com/company/vitrus-tech/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#0077B5] transition-colors">
+                <Linkedin className="w-4 h-4" />
+              </a>
             </div>
           </div>
 
