@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://vitrus.rw
+
+# Sitemaps
+Sitemap: https://vitrus.rw/sitemap.xml
