@@ -74,7 +74,7 @@ export default function RootLayout({
       <head>
         <link rel="canonical" href={SITE_URL} />
         <meta name="robots" content="index,follow" />
-        <Script id="ld-json" type="application/ld+json" strategy="afterInteractive">
+        <Script id="ld-org-json" type="application/ld+json" strategy="afterInteractive">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
@@ -82,7 +82,44 @@ export default function RootLayout({
             url: SITE_URL,
             logo: `${SITE_URL}/og-image.png`,
             sameAs: [
-              "https://www.linkedin.com/company/vitrus/"
+              "https://www.linkedin.com/company/vitrus-tech",
+              "https://x.com/Vitrusrwanda",
+              "https://www.instagram.com/vitrus_rw/"
+            ]
+          })}
+        </Script>
+        <Script id="ld-local-json" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            name: "Vitrus Rwanda",
+            image: `${SITE_URL}/og-image.png`,
+            url: SITE_URL,
+            telephone: "+250-786-493-820",
+            priceRange: "$$",
+            address: {
+              "@type": "PostalAddress",
+              streetAddress: "KN 1 Ave",
+              addressLocality: "Kigali",
+              addressRegion: "Kigali City",
+              postalCode: "0000",
+              addressCountry: "RW"
+            },
+            geo: {
+              "@type": "GeoCoordinates",
+              latitude: -1.94995,
+              longitude: 30.05885
+            },
+            openingHoursSpecification: [{
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+              opens: "09:00",
+              closes: "17:00"
+            }],
+            sameAs: [
+              "https://www.linkedin.com/company/vitrus/",
+              "https://x.com/Vitrusrwanda",
+              "https://www.instagram.com/vitrus_rw/"
             ]
           })}
         </Script>
