@@ -15,7 +15,7 @@ export default function AboutUs() {
     { value: "50+", label: "Team Members" },
     { value: "98%", label: "Client Satisfaction" },
   ]
-
+ 
   const values = [
     {
       icon: Target,
@@ -30,7 +30,7 @@ export default function AboutUs() {
     {
       icon: Award,
       title: "Excellence",
-      description: "We maintain the highest standards in every aspect of our digital tour creation process.",
+      description: "We maintain the highest standards in every aspect of our digital tour creation process .",
     },
     {
       icon: Zap,
