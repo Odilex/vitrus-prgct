@@ -1,5 +1,27 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { baseMetadata, SITE_URL } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  ...baseMetadata,
+  title: 'Terms of Service | Vitrus Rwanda',
+  description: 'Review the terms and conditions for using Vitrus services and website.',
+  openGraph: {
+    ...baseMetadata.openGraph,
+    title: 'Terms of Service | Vitrus Rwanda',
+    description: 'Review the terms and conditions for using Vitrus services and website.',
+    url: `${SITE_URL}/terms-of-service`,
+  },
+  twitter: {
+    ...baseMetadata.twitter,
+    title: 'Terms of Service | Vitrus Rwanda',
+    description: 'Review the terms and conditions for using Vitrus services and website.',
+  },
+  alternates: {
+    canonical: '/terms-of-service',
+  },
+};
 
 export default function TermsOfService() {
   return (

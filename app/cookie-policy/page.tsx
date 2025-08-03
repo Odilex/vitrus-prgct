@@ -1,5 +1,27 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { baseMetadata, SITE_URL } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  ...baseMetadata,
+  title: 'Cookie Policy | Vitrus Rwanda',
+  description: 'Understand how Vitrus uses cookies to enhance your experience on our website.',
+  openGraph: {
+    ...baseMetadata.openGraph,
+    title: 'Cookie Policy | Vitrus Rwanda',
+    description: 'Understand how Vitrus uses cookies to enhance your experience on our website.',
+    url: `${SITE_URL}/cookie-policy`,
+  },
+  twitter: {
+    ...baseMetadata.twitter,
+    title: 'Cookie Policy | Vitrus Rwanda',
+    description: 'Understand how Vitrus uses cookies to enhance your experience on our website.',
+  },
+  alternates: {
+    canonical: '/cookie-policy',
+  },
+};
 
 export default function CookiePolicy() {
   return (

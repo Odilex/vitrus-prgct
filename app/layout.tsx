@@ -6,6 +6,7 @@ import Script from "next/script"
 import { ThemeProvider } from "@/components/theme-provider"
 import FloatingNav from "@/components/floating-nav"
 import PolicyConsent from "@/components/policy-consent"
+import { SITE_URL } from "@/lib/seo"
 
 // Font setup
 const outfit = Outfit({
@@ -19,22 +20,27 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Vitrus | Transform Spaces with Immersive Digital Journeys",
+  title: "Vitrus Rwanda | 360° Virtual Tours for Properties & Spaces",
   description:
-    "Create stunning 3D virtual tours of any space with our cutting-edge technology. Perfect for real estate, museums, hotels, and more.",
+    "See it before you book it. Vitrus Rwanda creates immersive virtual tours for Airbnbs, workspaces, and businesses across Rwanda.",
   keywords: [
     "virtual tours Rwanda",
     "360 real estate tours Kigali",
     "Matterport Rwanda",
     "immersive virtual tours Africa",
     "3D property tours Kigali",
-    "real estate marketing Rwanda"
+    "real estate marketing Rwanda",
+    "vitrus Rwanda",
+    "scenography company in rwanda",
+    "virtual tour company",
+    "airbnb rwanda",
+    "airbnb tours",
   ],
   metadataBase: new URL("https://vitrus.rw"),
   openGraph: {
-    title: "Vitrus | Transform Spaces with Immersive Digital Journeys",
+    title: "Vitrus Rwanda | 360° Virtual Tours for Properties & Spaces",
     description:
-      "Create stunning 3D virtual tours of any space with our cutting-edge technology. Perfect for real estate, museums, hotels, and more.",
+      "See it before you book it. Vitrus Rwanda creates immersive virtual tours for Airbnbs, workspaces, and businesses across Rwanda.",
     url: "https://vitrus.rw",
     siteName: "Vitrus",
     images: [
@@ -50,9 +56,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Vitrus | Transform Spaces with Immersive Digital Journeys",
+    title: "Vitrus Rwanda | 360° Virtual Tours for Properties & Spaces",
     description:
-      "Create stunning 3D virtual tours of any space with our cutting-edge technology. Perfect for real estate, museums, hotels, and more.",
+      "See it before you book it. Vitrus Rwanda creates immersive virtual tours for Airbnbs, workspaces, and businesses across Rwanda.",
     images: ["/og-image.png"]
   },
   generator: 'v0.dev'
@@ -66,6 +72,20 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="canonical" href={SITE_URL} />
+        <meta name="robots" content="index,follow" />
+        <Script id="ld-json" type="application/ld+json" strategy="afterInteractive">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "Vitrus",
+            url: SITE_URL,
+            logo: `${SITE_URL}/og-image.png`,
+            sameAs: [
+              "https://www.linkedin.com/company/vitrus/"
+            ]
+          })}
+        </Script>
         <link rel="icon" href="/favicon.PNG" type="image/png" />
         <script
           async

@@ -1,5 +1,27 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+import { baseMetadata, SITE_URL } from '@/lib/seo';
+
+export const metadata: Metadata = {
+  ...baseMetadata,
+  title: 'Privacy Policy | Vitrus Rwanda',
+  description: 'Learn how Vitrus collects, uses, and protects your personal information.',
+  openGraph: {
+    ...baseMetadata.openGraph,
+    title: 'Privacy Policy | Vitrus Rwanda',
+    description: 'Learn how Vitrus collects, uses, and protects your personal information.',
+    url: `${SITE_URL}/privacy-policy`,
+  },
+  twitter: {
+    ...baseMetadata.twitter,
+    title: 'Privacy Policy | Vitrus Rwanda',
+    description: 'Learn how Vitrus collects, uses, and protects your personal information.',
+  },
+  alternates: {
+    canonical: '/privacy-policy',
+  },
+};
 
 export default function PrivacyPolicy() {
   return (
