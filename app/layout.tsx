@@ -5,6 +5,7 @@ import { Inter, Outfit } from "next/font/google"
 import Script from "next/script"
 import { ThemeProvider } from "@/components/theme-provider"
 import FloatingNav from "@/components/floating-nav"
+import PolicyConsent from "@/components/policy-consent"
 
 // Font setup
 const outfit = Outfit({
@@ -85,6 +86,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <FloatingNav />
           {children}
+          <PolicyConsent />
         </ThemeProvider>
       </body>
     </html>
