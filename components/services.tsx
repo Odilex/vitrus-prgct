@@ -4,6 +4,7 @@ import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
 import Image from "next/image"
 import { Building2, Building, Landmark, Home, Hotel, PanelTop, ArrowRight } from "lucide-react"
+import { getImageWithFallback } from "@/lib/imageUtils"
 
 export default function Services() {
   const ref = useRef(null)
@@ -96,7 +97,7 @@ export default function Services() {
             >
               <div className="relative h-40 sm:h-48 overflow-hidden">
                 <Image
-                  src={service.image || "/placeholder.svg"}
+                  src={getImageWithFallback(service.image, 'service')}
                   alt={service.title}
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-105"

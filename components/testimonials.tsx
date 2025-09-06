@@ -3,6 +3,8 @@
 import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
 import { QuoteIcon } from "lucide-react"
+import Image from "next/image"
+import { getTestimonialAvatar } from "@/lib/imageUtils"
 
 const testimonials = [
   {
@@ -11,7 +13,7 @@ const testimonials = [
     author: "Sarah Johnson",
     role: "Marketing Director",
     company: "Grand Luxe Hotels",
-    image: "/placeholder.svg?height=100&width=100",
+    image: getTestimonialAvatar("Sarah Johnson"),
   },
   {
     quote:
@@ -19,7 +21,7 @@ const testimonials = [
     author: "Michael Chen",
     role: "Curator",
     company: "Metropolitan Museum",
-    image: "/placeholder.svg?height=100&width=100",
+    image: getTestimonialAvatar("Michael Chen"),
   },
   {
     quote:
@@ -27,7 +29,7 @@ const testimonials = [
     author: "Jessica Williams",
     role: "Principal Agent",
     company: "Elite Properties",
-    image: "/placeholder.svg?height=100&width=100",
+    image: getTestimonialAvatar("Jessica Williams"),
   },
 ]
 
@@ -74,8 +76,8 @@ export default function Testimonials() {
                   <div className="flex items-center">
                     <div className="mr-4 w-12 h-12 relative overflow-hidden rounded-full bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] p-[2px]">
                       <div className="rounded-full overflow-hidden w-full h-full">
-                        <img
-                          src={testimonial.image || "/placeholder.svg"}
+                        <Image
+                          src={testimonial.image}
                           alt={testimonial.author}
                           className="w-full h-full object-cover"
                           width={48}

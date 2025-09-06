@@ -172,7 +172,7 @@ export default function Footer() {
   )
 }
 
-function SocialIcon({ icon, label }) {
+function SocialIcon({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <a
       href="#"
