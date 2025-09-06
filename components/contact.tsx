@@ -143,7 +143,7 @@ export default function Contact() {
                     name="email"
                     required
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                    placeholder="john@example.com"
+                    placeholder="john@gmail.com"
                   />
                 </div>
 
@@ -183,7 +183,7 @@ export default function Contact() {
                     <option value="other">Other</option>
                   </select>
                 </div>
-
+luminotech
                 <div className="mb-6">
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
                     Message

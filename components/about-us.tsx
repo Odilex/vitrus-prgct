@@ -11,9 +11,9 @@ export default function AboutUs() {
 
   const stats = [
     { value: "5+", label: "Years Experience" },
-    { value: "200+", label: "Projects Completed" },
-    { value: "50+", label: "Team Members" },
-    { value: "98%", label: "Client Satisfaction" },
+    { value: "20+", label: "Projects Completed" },
+    { value: "10+", label: "Team Members" },
+    { value: "100%", label: "Client Satisfaction" },
   ]
  
   const values = [
@@ -84,7 +84,7 @@ export default function AboutUs() {
               </div>
               <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-br from-[#8E8E9D] to-[#B5B5C3] rounded-xl z-10 flex items-center justify-center">
                 <div className="text-center text-white">
-                  <div className="text-3xl font-bold">10</div>
+                  <div className="text-3xl font-bold">5+</div>
                   <div className="text-sm">Years of Innovation</div>
                 </div>
               </div>
@@ -98,7 +98,7 @@ export default function AboutUs() {
           >
             <h3 className="text-2xl font-bold text-white mb-4 font-outfit">Our Story</h3>
             <p className="text-white/70 mb-6">
-              Founded in 2014, Vitrus began with a simple mission: to break down the barriers between physical spaces
+              Founded in 2023, Vitrus began with a simple mission: to break down the barriers between physical spaces
               and digital experiences. What started as a small team of innovators has grown into a global leader in
               immersive digital solutions.
             </p>
