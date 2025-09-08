@@ -10,9 +10,6 @@ const nextConfig = {
     unoptimized: true,
   },
   // Removed standalone output for better Vercel compatibility
-  experimental: {
-    outputFileTracingRoot: undefined,
-  },
 }
 
 export default nextConfig
