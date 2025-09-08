@@ -9,7 +9,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  output: 'standalone',
+  // Removed standalone output for better Vercel compatibility
   experimental: {
     outputFileTracingRoot: undefined,
   },
