@@ -245,17 +245,17 @@ export const analyticsApi = {
     activeProperties: number;
     totalClients: number;
     scheduledTours: number;
-    recentActivity: any[];
+    recentActivity: Array<{ id: string; type: string; timestamp: string; description: string }>;
   }>> => {
     return apiRequest('/analytics/dashboard');
   },
 
   // Get property analytics
   getPropertyAnalytics: async (): Promise<ApiResponse<{
-    salesData: any[];
-    propertyTypes: any[];
-    locationData: any[];
-    priceRanges: any[];
+    salesData: Array<{ date: string; value: number }>;
+    propertyTypes: Array<{ type: string; count: number }>;
+    locationData: Array<{ location: string; count: number }>;
+    priceRanges: Array<{ range: string; count: number }>;
   }>> => {
     return apiRequest('/analytics/properties');
   },
@@ -264,12 +264,12 @@ export const analyticsApi = {
 // Settings API functions
 export const settingsApi = {
   // Get user settings
-  getUserSettings: async (userId: string): Promise<ApiResponse<any>> => {
+  getUserSettings: async (userId: string): Promise<ApiResponse<Record<string, unknown>>> => {
     return apiRequest(`/settings/user/${userId}`);
   },
 
   // Update user settings
-  updateUserSettings: async (userId: string, settings: any): Promise<ApiResponse<any>> => {
+  updateUserSettings: async (userId: string, settings: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> => {
     return apiRequest(`/settings/user/${userId}`, {
       method: 'PUT',
       body: JSON.stringify(settings),
@@ -277,12 +277,12 @@ export const settingsApi = {
   },
 
   // Get system settings
-  getSystemSettings: async (): Promise<ApiResponse<any>> => {
+  getSystemSettings: async (): Promise<ApiResponse<Record<string, unknown>>> => {
     return apiRequest('/settings/system');
   },
 
   // Update system settings
-  updateSystemSettings: async (settings: any): Promise<ApiResponse<any>> => {
+  updateSystemSettings: async (settings: Record<string, unknown>): Promise<ApiResponse<Record<string, unknown>>> => {
     return apiRequest('/settings/system', {
       method: 'PUT',
       body: JSON.stringify(settings),
@@ -290,10 +290,12 @@ export const settingsApi = {
   },
 };
 
-export default {
+const apiService = {
   propertyApi,
   clientApi,
   tourApi,
   analyticsApi,
   settingsApi,
 };
+
+export default apiService;

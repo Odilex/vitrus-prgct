@@ -4,7 +4,7 @@ import propertyService from './api/property';
 import { toast } from 'sonner';
 import type { Property } from './types/property';
 
-export interface DashboardProperty extends Property {}
+export type DashboardProperty = Property;
 
 interface PropertyStore {
   properties: DashboardProperty[];
@@ -141,7 +141,7 @@ export const usePropertyStore = () => {
     if (!store.initialized && !store.isLoading) {
       store.initializeProperties();
     }
-  }, [store.initialized, store.isLoading]);
+  }, [store, store.initialized, store.isLoading]);
   
   return store;
 };

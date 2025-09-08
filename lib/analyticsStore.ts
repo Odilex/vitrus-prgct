@@ -33,10 +33,10 @@ interface DashboardAnalytics {
     properties_created: number;
   };
   trends: {
-    properties_over_time: any[];
-    inquiries_over_time: any[];
-    tours_over_time: any[];
-    events_over_time: any[];
+    properties_over_time: Array<{ date: string; count: number }>;
+  inquiries_over_time: Array<{ date: string; count: number }>;
+  tours_over_time: Array<{ date: string; count: number }>;
+  events_over_time: Array<{ date: string; count: number }>;
   };
   breakdowns: {
     inquiry_types: Record<string, number>;
@@ -83,7 +83,7 @@ const PROPERTY_TYPE_COLORS = {
 };
 
 // Transform backend data to frontend format
-const transformDashboardData = (backendData: any): DashboardAnalytics => {
+const transformDashboardData = (backendData: Record<string, unknown>): DashboardAnalytics => {
   return {
     summary: {
       total_properties: backendData.summary?.total_properties || 0,
@@ -111,7 +111,7 @@ const transformDashboardData = (backendData: any): DashboardAnalytics => {
 };
 
 // Transform trends data to monthly format
-const transformToMonthlyData = (trends: any): MonthlyData[] => {
+const transformToMonthlyData = (trends: Record<string, unknown>): MonthlyData[] => {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const currentDate = new Date();
   const monthlyData: MonthlyData[] = [];
@@ -122,13 +122,13 @@ const transformToMonthlyData = (trends: any): MonthlyData[] => {
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     
     // Find data for this month in trends
-    const inquiriesData = trends.inquiries_over_time?.find((item: any) => 
+    const inquiriesData = trends.inquiries_over_time?.find((item: Record<string, unknown>) => 
       item.period?.startsWith(monthKey)
     );
-    const toursData = trends.tours_over_time?.find((item: any) => 
+    const toursData = trends.tours_over_time?.find((item: Record<string, unknown>) => 
       item.period?.startsWith(monthKey)
     );
-    const eventsData = trends.events_over_time?.find((item: any) => 
+    const eventsData = trends.events_over_time?.find((item: Record<string, unknown>) => 
       item.period?.startsWith(monthKey)
     );
     
@@ -143,19 +143,38 @@ const transformToMonthlyData = (trends: any): MonthlyData[] => {
   return monthlyData;
 };
 
+// Property type interface
+interface RawPropertyType {
+  name?: string;
+  count?: number;
+}
+
+// Property analytics interface
+interface PropertyAnalytics {
+  propertyTypes?: RawPropertyType[];
+}
+
 // Transform property analytics to type distribution
-const transformPropertyTypeData = (propertyAnalytics: any): PropertyTypeData[] => {
+const transformPropertyTypeData = (propertyAnalytics: PropertyAnalytics): PropertyTypeData[] => {
   const propertyTypes = propertyAnalytics?.propertyTypes || [];
   
-  return propertyTypes.map((type: any, index: number) => ({
+  return propertyTypes.map((type: RawPropertyType, index: number) => ({
     name: type.name || `Type ${index + 1}`,
     value: type.count || 0,
     color: PROPERTY_TYPE_COLORS[type.name as keyof typeof PROPERTY_TYPE_COLORS] || `#${Math.floor(Math.random()*16777215).toString(16)}`,
   }));
 };
 
+// Raw property interface
+interface RawProperty {
+  id: string;
+  title?: string;
+  name?: string;
+  views?: number;
+}
+
 // Transform top properties data
-const transformTopProperties = (topProperties: any[]): TopProperty[] => {
+const transformTopProperties = (topProperties: RawProperty[]): TopProperty[] => {
   return topProperties.map(property => ({
     id: property.id,
     name: property.title || property.name,
@@ -165,7 +184,7 @@ const transformTopProperties = (topProperties: any[]): TopProperty[] => {
   }));
 };
 
-export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
+export const useAnalyticsStore = create<AnalyticsState>((set, _get) => ({
   // Initial state
   dashboardData: null,
   monthlyData: [],
@@ -175,7 +194,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
   error: null,
   
   // Fetch dashboard analytics
-  fetchDashboardAnalytics: async (dateFrom?: string, dateTo?: string) => {
+  fetchDashboardAnalytics: async (_dateFrom?: string, _dateTo?: string) => {
     set({ isLoading: true, error: null });
     
     try {

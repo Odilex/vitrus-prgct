@@ -358,7 +358,7 @@ export default function VirtualTour({
                 </div>
                 <h3 className="text-white text-xl font-semibold mb-3">Virtual Tour Unavailable</h3>
                 <p className="text-gray-400 mb-4">
-                  We're having trouble loading the virtual tour
+                  We&apos;re having trouble loading the virtual tour
                 </p>
                 <p className="text-gray-500 text-sm mb-6">Please try refreshing the page or contact support</p>
                 <div className="flex gap-3 justify-center">

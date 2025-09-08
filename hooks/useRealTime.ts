@@ -32,13 +32,13 @@ export function useRealTimeConnection(token?: string, userId?: string) {
 export function useRealTimeEvent<K extends keyof RealTimeEvents>(
   event: K,
   handler: RealTimeEvents[K],
-  dependencies: any[] = []
+  dependencies: unknown[] = []
 ) {
   const handlerRef = useRef(handler);
   handlerRef.current = handler;
 
   useEffect(() => {
-    const stableHandler = (data: any) => handlerRef.current(data);
+    const stableHandler = (data: Parameters<RealTimeEvents[K]>[0]) => handlerRef.current(data);
     
     realTimeService.on(event, stableHandler);
     
@@ -180,7 +180,7 @@ export function useNotifications() {
 }
 
 // Hook for real-time property updates
-export function usePropertyUpdates(onPropertyUpdate?: (data: any) => void) {
+export function usePropertyUpdates(onPropertyUpdate?: (data: Parameters<RealTimeEvents['property_updated']>[0]) => void) {
   useRealTimeEvent('property_updated', (data) => {
     console.log('Property updated:', data);
     onPropertyUpdate?.(data);
@@ -192,7 +192,7 @@ export function usePropertyUpdates(onPropertyUpdate?: (data: any) => void) {
 }
 
 // Hook for real-time tour updates
-export function useTourUpdates(onTourUpdate?: (data: any) => void) {
+export function useTourUpdates(onTourUpdate?: (data: Parameters<RealTimeEvents['tour_updated']>[0]) => void) {
   useRealTimeEvent('tour_updated', (data) => {
     console.log('Tour updated:', data);
     onTourUpdate?.(data);
@@ -205,7 +205,7 @@ export function useTourUpdates(onTourUpdate?: (data: any) => void) {
 }
 
 // Hook for real-time notifications
-export function useNotificationUpdates(onNewNotification?: (data: any) => void) {
+export function useNotificationUpdates(onNewNotification?: (data: Parameters<RealTimeEvents['new_notification']>[0]) => void) {
   useRealTimeEvent('new_notification', (data) => {
     console.log('New notification:', data);
     onNewNotification?.(data);
@@ -217,7 +217,7 @@ export function useNotificationUpdates(onNewNotification?: (data: any) => void) 
 }
 
 // Hook for real-time chat messages
-export function useChatMessages(onNewMessage?: (data: any) => void) {
+export function useChatMessages(onNewMessage?: (data: Parameters<RealTimeEvents['new_message']>[0]) => void) {
   useRealTimeEvent('new_message', (data) => {
     console.log('New message:', data);
     onNewMessage?.(data);

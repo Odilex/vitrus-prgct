@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { tourApi, type Tour } from './apiService';
 import { toast } from 'sonner';
 
-export interface DashboardTour extends Tour {}
+export type DashboardTour = Tour;
 
 interface TourStore {
   tours: DashboardTour[];
@@ -155,7 +155,7 @@ export const useTourStore = () => {
     if (!store.initialized && !store.isLoading) {
       store.initializeTours();
     }
-  }, [store.initialized, store.isLoading, store.initializeTours]);
+  }, [store, store.initialized, store.isLoading, store.initializeTours]);
   
   return store;
 };

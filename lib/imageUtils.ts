@@ -22,7 +22,7 @@ export function getDefaultImage(type: keyof typeof DEFAULT_IMAGES): string {
 /**
  * Generate a placeholder image URL using local fallback images
  */
-export function getPlaceholderImage(width: number = 400, height: number = 300, category: string = 'architecture'): string {
+export function getPlaceholderImage(_width: number = 400, _height: number = 300, _category: string = 'architecture'): string {
   // Use local default images instead of external services to avoid CORS/ORB issues
   return getDefaultImage('property');
 }

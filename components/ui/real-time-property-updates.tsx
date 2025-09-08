@@ -20,8 +20,8 @@ interface PropertyUpdate {
   userName?: string;
   userAvatar?: string;
   metadata?: {
-    oldValue?: any;
-    newValue?: any;
+    oldValue?: unknown;
+    newValue?: unknown;
     propertyTitle?: string;
     propertyImage?: string;
     propertyPrice?: number;

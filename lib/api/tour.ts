@@ -17,8 +17,20 @@ export interface UpdateTourData {
   notes?: string;
 }
 
+// Database tour interface
+interface DbTour {
+  id: string;
+  property_id: string;
+  client_id: string;
+  scheduled_date: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'rescheduled';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Transform database tour to frontend Tour interface
-function transformTour(dbTour: any): Tour {
+function transformTour(dbTour: DbTour): Tour {
   return {
     id: dbTour.id,
     propertyId: dbTour.property_id,
@@ -34,7 +46,7 @@ function transformTour(dbTour: any): Tour {
 export class TourService {
   static async getAll(): Promise<Tour[]> {
     try {
-      const result = await AuthService.makeAuthenticatedRequest<{ data: any[] }>('/tours');
+      const result = await AuthService.makeAuthenticatedRequest<{ data: DbTour[] }>('/tours');
       return result.data?.map(transformTour) || [];
     } catch (error) {
       console.error('Error fetching tours:', error);
@@ -44,7 +56,7 @@ export class TourService {
 
   static async getById(id: string): Promise<Tour | null> {
     try {
-      const result = await AuthService.makeAuthenticatedRequest<{ tour: any }>(`/tours/${id}`);
+      const result = await AuthService.makeAuthenticatedRequest<{ tour: DbTour }>(`/tours/${id}`);
       return transformTour(result.tour);
     } catch (error) {
       console.error('Error fetching tour:', error);
@@ -54,7 +66,7 @@ export class TourService {
 
   static async create(tourData: CreateTourData): Promise<Tour | null> {
     try {
-      const result = await AuthService.makeAuthenticatedRequest<{ tour: any }>('/tours', {
+      const result = await AuthService.makeAuthenticatedRequest<{ tour: DbTour }>('/tours', {
         method: 'POST',
         body: JSON.stringify(tourData),
       });
@@ -67,7 +79,7 @@ export class TourService {
 
   static async update(id: string, tourData: UpdateTourData): Promise<Tour | null> {
     try {
-      const result = await AuthService.makeAuthenticatedRequest<{ tour: any }>(`/tours/${id}`, {
+      const result = await AuthService.makeAuthenticatedRequest<{ tour: DbTour }>(`/tours/${id}`, {
         method: 'PUT',
         body: JSON.stringify(tourData),
       });

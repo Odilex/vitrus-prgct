@@ -3,7 +3,7 @@
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 
-type RealTimeEventHandler = (data: any) => void;
+type RealTimeEventHandler = (data: unknown) => void;
 
 interface RealTimeEvents {
   // Connection events
@@ -14,8 +14,8 @@ interface RealTimeEvents {
   property_updated: (data: {
     eventType: string;
     propertyId: string;
-    property: any;
-    oldProperty?: any;
+    property: Record<string, unknown>;
+    oldProperty?: Record<string, unknown>;
     timestamp: string;
   }) => void;
   property_viewed: (data: {
@@ -33,8 +33,8 @@ interface RealTimeEvents {
   tour_updated: (data: {
     eventType: string;
     tourId: string;
-    tour: any;
-    oldTour?: any;
+    tour: Record<string, unknown>;
+    oldTour?: Record<string, unknown>;
     timestamp: string;
   }) => void;
   tour_status_updated: (data: {
@@ -48,11 +48,11 @@ interface RealTimeEvents {
   
   // Notification events
   new_notification: (data: {
-    notification: any;
+    notification: Record<string, unknown>;
     timestamp: string;
   }) => void;
   pending_notifications: (data: {
-    notifications: any[];
+    notifications: Record<string, unknown>[];
     count: number;
   }) => void;
   notification_marked_read: (data: { notificationId: string }) => void;

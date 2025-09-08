@@ -3,8 +3,34 @@ import { AuthService } from '../auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
+// Database property interface
+interface DbProperty {
+  id: string;
+  title: string;
+  description?: string;
+  price?: number;
+  address?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  square_feet?: number;
+  property_type?: string;
+  status?: string;
+  images?: string[];
+  features?: string[];
+  year_built?: number;
+  lot_size?: number;
+  garage_spaces?: number;
+  listing_agent?: string;
+  created_at?: string;
+  updated_at?: string;
+  user_id?: string;
+}
+
 // Transform database property to frontend Property interface
-function transformProperty(dbProperty: any): Property {
+function transformProperty(dbProperty: DbProperty): Property {
   return {
     id: dbProperty.id,
     title: dbProperty.title,

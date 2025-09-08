@@ -181,7 +181,7 @@ export const useAuthStore = create<AuthStore>()(
           });
 
           return true;
-        } catch (error) {
+        } catch (_error) {
           // If refresh fails, logout user
           get().logout();
           return false;
@@ -255,7 +255,7 @@ export const useAuthStore = create<AuthStore>()(
           const currentTime = Date.now() / 1000;
           
           return payload.exp < currentTime;
-        } catch (error) {
+        } catch (_error) {
           return true;
         }
       },
@@ -326,16 +326,16 @@ export class AuthService {
             
             // If there are validation errors, include them
             if (errorData.errors && Array.isArray(errorData.errors)) {
-              const validationErrors = errorData.errors.map((err: any) => err.msg || err.message).join(', ');
+              const validationErrors = errorData.errors.map((err: { msg?: string; message?: string }) => err.msg || err.message).join(', ');
               errorMessage = `${errorMessage}: ${validationErrors}`;
             }
             
             // Create error object with details for better error handling
-            const error = new Error(errorMessage) as any;
+            const error = new Error(errorMessage) as Error & { status?: number; details?: unknown };
             error.status = retryResponse.status;
             error.details = errorData.errors;
             throw error;
-          } catch (parseError) {
+          } catch (_parseError) {
             // If we can't parse the error response, throw the original error
             throw new Error(errorMessage);
           }
@@ -359,16 +359,16 @@ export class AuthService {
         
         // If there are validation errors, include them
         if (errorData.errors && Array.isArray(errorData.errors)) {
-          const validationErrors = errorData.errors.map((err: any) => err.msg || err.message).join(', ');
+          const validationErrors = errorData.errors.map((err: { msg?: string; message?: string }) => err.msg || err.message).join(', ');
           errorMessage = `${errorMessage}: ${validationErrors}`;
         }
         
         // Create error object with details for better error handling
-        const error = new Error(errorMessage) as any;
+        const error = new Error(errorMessage) as Error & { status?: number; details?: unknown };
         error.status = response.status;
         error.details = errorData.errors;
         throw error;
-      } catch (parseError) {
+      } catch (_parseError) {
         // If we can't parse the error response, throw the original error
         throw new Error(errorMessage);
       }

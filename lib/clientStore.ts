@@ -4,7 +4,7 @@ import ClientService from './api/client';
 import { type Client } from './types/client';
 import { toast } from 'sonner';
 
-export interface DashboardClient extends Client {}
+export type DashboardClient = Client;
 
 interface ClientStore {
   clients: DashboardClient[];
@@ -141,7 +141,7 @@ export const useClientStore = () => {
     if (!store.initialized && !store.isLoading) {
       store.initializeClients();
     }
-  }, [store.initialized, store.isLoading, store.initializeClients]);
+  }, [store, store.initialized, store.isLoading, store.initializeClients]);
   
   return store;
 };
