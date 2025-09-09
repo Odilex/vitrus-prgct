@@ -13,7 +13,7 @@ export class ClientService {
     return response.data;
   }
 
-  async create(clientData: Omit<Client, 'id' | 'created_at' | 'updated_at' | 'role'>): Promise<Client> {
+  async create(clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client> {
     const response = await AuthService.makeAuthenticatedRequest<{success: boolean, data: Client}>('/clients', {
       method: 'POST',
       body: JSON.stringify(clientData),

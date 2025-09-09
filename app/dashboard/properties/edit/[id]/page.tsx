@@ -11,8 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Edit, ImageIcon, Video, ArrowLeft, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { propertyService } from "@/lib/api/property";
+import { usePropertyStore } from "@/lib/propertyStore";
+import { PropertyError, NotFoundError } from "@/lib/api/property";
+import { PropertyErrorBoundary } from "@/components/ui/property-error-boundary";
 import type { Property } from "@/lib/types/property";
+import { PropertyService } from "@/lib/propertyService";
+import { ErrorHandler } from "@/lib/errorHandler";
 
 interface PropertyFormData {
   title: string;
@@ -35,9 +39,12 @@ export default function EditPropertyPage() {
   const router = useRouter();
   const params = useParams();
   const propertyId = params.id as string;
+  const { updateProperty } = usePropertyStore();
   const [isLoading, setIsLoading] = useState(false);
   const [property, setProperty] = useState<Property | null>(null);
-  // Remove property store usage
+  const [loadingProperty, setLoadingProperty] = useState(true);
+  const [propertyError, setPropertyError] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState<PropertyFormData>({
     title: "",
     description: "",
@@ -79,41 +86,50 @@ export default function EditPropertyPage() {
     "Rented"
   ];
 
+  // Load property data
   useEffect(() => {
-    const fetchProperty = async () => {
-      if (propertyId) {
-        try {
-          setIsLoading(true);
-          const foundProperty = await propertyService.getById(propertyId);
-          setProperty(foundProperty);
+    const loadProperty = async () => {
+      try {
+        setLoadingProperty(true);
+        setPropertyError(null);
+        
+        const propertyData = await PropertyService.getById(propertyId);
+        if (propertyData) {
+          setProperty(propertyData);
+          
+          // Update form data
           setFormData({
-            title: foundProperty.title,
-            description: foundProperty.description,
-            price: foundProperty.price.toString(),
-            location: `${foundProperty.address}, ${foundProperty.city}, ${foundProperty.state}`,
-            type: foundProperty.propertyType,
-            bedrooms: foundProperty.bedrooms.toString(),
-            bathrooms: foundProperty.bathrooms.toString(),
-            squareFeet: foundProperty.squareFootage.toString(),
-            images: foundProperty.images || [],
-            tourUrl: foundProperty.virtualTourUrl || "",
-            amenities: foundProperty.features?.join(", ") || "",
-            status: foundProperty.status || "active",
-            owner: "",
-            ownerContact: ""
+            title: propertyData.title || '',
+            description: propertyData.description || '',
+            price: propertyData.price?.toString() || '',
+            location: `${propertyData.address || ''}, ${propertyData.city || ''}, ${propertyData.state || ''}`.replace(/^,\s*|,\s*$/g, ''),
+            type: propertyData.propertyType || '',
+            bedrooms: propertyData.bedrooms?.toString() || '',
+            bathrooms: propertyData.bathrooms?.toString() || '',
+            squareFeet: propertyData.squareFootage?.toString() || '',
+            images: propertyData.images || [],
+            tourUrl: propertyData.virtualTourUrl || '',
+            amenities: propertyData.features?.join(', ') || '',
+            status: propertyData.status || 'active',
+            owner: propertyData.owner?.name || '',
+            ownerContact: propertyData.owner?.phone || propertyData.owner?.whatsapp || ''
           });
-        } catch (error) {
-          console.error('Error fetching property:', error);
-          toast.error("Property not found");
-          router.push("/dashboard/properties");
-        } finally {
-          setIsLoading(false);
+        } else {
+          throw new Error('Property not found');
         }
+      } catch (error) {
+        const errorMessage = ErrorHandler.handle(error);
+        setPropertyError(errorMessage);
+        toast.error(`Failed to load property: ${errorMessage}`);
+      } finally {
+        setLoadingProperty(false);
       }
     };
     
-    fetchProperty();
-  }, [propertyId, router]);
+    if (propertyId) {
+      loadProperty();
+    }
+  }, [propertyId]);
 
   const handleInputChange = (field: keyof PropertyFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -141,44 +157,65 @@ export default function EditPropertyPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (!property) {
+      toast.error('Property not found');
+      return;
+    }
 
     try {
+      setIsLoading(true);
+      
       // Validate required fields
-      if (!formData.title || !formData.price || !formData.location || !formData.type) {
-        toast.error("Please fill in all required fields");
+      if (!formData.title || !formData.price || !formData.location) {
+        toast.error('Please fill in all required fields');
         return;
       }
-      
-      // Parse location back to address components
-      const locationParts = formData.location.split(", ");
-      
-      // Update property data
+
+      // Convert form data to property format
+      const locationParts = formData.location.split(',').map(part => part.trim());
       const updatedPropertyData = {
+        ...property,
         title: formData.title,
         description: formData.description,
         price: parseFloat(formData.price),
-        address: locationParts[0] || formData.location,
-        city: locationParts[1] || "",
-        state: locationParts[2] || "",
-        propertyType: formData.type as any,
+        address: locationParts[0] || property.address,
+        city: locationParts[1] || property.city,
+        state: locationParts[2] || property.state,
         bedrooms: parseInt(formData.bedrooms) || 0,
         bathrooms: parseInt(formData.bathrooms) || 0,
         squareFootage: parseInt(formData.squareFeet) || 0,
+        propertyType: formData.type as Property['propertyType'],
+        status: formData.status as Property['status'],
+        features: formData.amenities ? formData.amenities.split(',').map(f => f.trim()) : [],
         images: formData.images,
-        virtualTourUrl: formData.tourUrl || undefined,
-        features: formData.amenities.split(",").map(a => a.trim()).filter(a => a),
-        status: formData.status as any
+        virtualTourUrl: formData.tourUrl,
+        owner: formData.owner ? {
+          name: formData.owner,
+          email: property.owner?.email || '',
+          phone: formData.ownerContact,
+          whatsapp: property.owner?.whatsapp || ''
+        } : property.owner
       };
 
-      // Update property via API
-      await propertyService.update(propertyId, updatedPropertyData);
+      // Update property via PropertyService
+      const result = await PropertyService.update(propertyId, updatedPropertyData);
       
-      toast.success("Property updated successfully!");
-      router.push("/dashboard/properties");
+      if (result) {
+        toast.success('Property updated successfully!');
+        
+        // Update local store
+        updateProperty(propertyId, result);
+        
+        // Redirect to property list
+        router.push('/dashboard/properties');
+      } else {
+        throw new Error('Failed to update property');
+      }
+      
     } catch (error) {
-      console.error('Error updating property:', error);
-      toast.error("Failed to update property. Please try again.");
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to update property: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -189,27 +226,101 @@ export default function EditPropertyPage() {
       return;
     }
 
-    setIsLoading(true);
     try {
-      // Simulate API call to delete property
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsLoading(true);
       
-      // Delete property using the property store
-      propertyStore.deleteProperties([propertyId]);
+      // Delete property using PropertyService
+      const result = await PropertyService.delete(propertyId);
       
-      toast.success("Property deleted successfully!");
-      router.push("/dashboard/properties");
+      if (result) {
+        toast.success("Property deleted successfully!");
+        
+        // Redirect to properties list
+        router.push("/dashboard/properties");
+      } else {
+        throw new Error("Failed to delete property");
+      }
+      
     } catch (error) {
-      toast.error("Failed to delete property. Please try again.");
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to delete property: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle loading and error states
+  if (propertyError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-4 mb-8">
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold text-white">Edit Property</h1>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center max-w-md">
+              <div className="text-red-500 text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Error Loading Property
+              </h2>
+              <p className="text-slate-300 mb-6">{propertyError}</p>
+              <div className="space-x-4">
+                <Button
+                  onClick={() => router.back()}
+                  variant="outline"
+                  className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                >
+                  Go Back
+                </Button>
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="bg-cyan-600 hover:bg-cyan-700"
+                >
+                  Retry
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingProperty) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl flex items-center gap-3">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-400"></div>
+          Loading property...
+        </div>
+      </div>
+    );
+  }
+
   if (!property) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading property...</div>
+        <div className="text-center max-w-md">
+          <div className="text-yellow-500 text-6xl mb-4">📋</div>
+          <h2 className="text-2xl font-bold text-white mb-2">
+            Property Not Found
+          </h2>
+          <p className="text-slate-300 mb-6">The requested property could not be found.</p>
+          <Button
+            onClick={() => router.push('/dashboard/properties')}
+            className="bg-cyan-600 hover:bg-cyan-700"
+          >
+            Back to Properties
+          </Button>
+        </div>
       </div>
     );
   }

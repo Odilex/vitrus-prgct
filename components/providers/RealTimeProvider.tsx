@@ -41,7 +41,7 @@ export function RealTimeProvider({
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected');
 
   // Use the real-time connection hook
-  const connection = useRealTimeConnection(
+  useRealTimeConnection(
     autoConnect ? currentToken : undefined,
     autoConnect ? currentUserId : undefined
   );

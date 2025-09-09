@@ -1,16 +1,27 @@
 import React from 'react';
 import { create } from 'zustand';
 import propertyService from './api/property';
+import { PropertyError, NetworkError, ValidationError, NotFoundError, UnauthorizedError } from './api/property';
 import { toast } from 'sonner';
 import type { Property } from './types/property';
 
 export type DashboardProperty = Property;
 
+// Enhanced error state interface
+interface ErrorState {
+  message: string;
+  code: string;
+  type: 'network' | 'validation' | 'not_found' | 'unauthorized' | 'server' | 'unknown';
+  retryable: boolean;
+  timestamp: number;
+}
+
 interface PropertyStore {
   properties: DashboardProperty[];
   isLoading: boolean;
-  error: string | null;
+  error: ErrorState | null;
   initialized: boolean;
+  lastFetchTime: number | null;
   
   // Actions
   initializeProperties: () => Promise<void>;
@@ -19,15 +30,81 @@ interface PropertyStore {
   deleteProperties: (ids: string[]) => Promise<boolean>;
   getPropertyById: (id: string) => DashboardProperty | undefined;
   refreshProperties: () => Promise<void>;
+  retryLastOperation: () => Promise<void>;
   setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
+  setError: (error: ErrorState | null) => void;
+  clearError: () => void;
 }
+
+// Helper function to convert PropertyError to ErrorState
+const createErrorState = (error: unknown): ErrorState => {
+  const timestamp = Date.now();
+  
+  if (error instanceof NetworkError) {
+    return {
+      message: error.message,
+      code: error.code,
+      type: 'network',
+      retryable: true,
+      timestamp,
+    };
+  }
+  
+  if (error instanceof ValidationError) {
+    return {
+      message: error.message,
+      code: error.code,
+      type: 'validation',
+      retryable: false,
+      timestamp,
+    };
+  }
+  
+  if (error instanceof NotFoundError) {
+    return {
+      message: error.message,
+      code: error.code,
+      type: 'not_found',
+      retryable: false,
+      timestamp,
+    };
+  }
+  
+  if (error instanceof UnauthorizedError) {
+    return {
+      message: error.message,
+      code: error.code,
+      type: 'unauthorized',
+      retryable: false,
+      timestamp,
+    };
+  }
+  
+  if (error instanceof PropertyError) {
+    return {
+      message: error.message,
+      code: error.code,
+      type: error.status && error.status >= 500 ? 'server' : 'unknown',
+      retryable: error.status ? error.status >= 500 : false,
+      timestamp,
+    };
+  }
+  
+  return {
+    message: error instanceof Error ? error.message : 'An unexpected error occurred',
+    code: 'UNKNOWN_ERROR',
+    type: 'unknown',
+    retryable: false,
+    timestamp,
+  };
+};
 
 export const propertyStore = create<PropertyStore>((set, get) => ({
   properties: [],
   isLoading: false,
   error: null,
   initialized: false,
+  lastFetchTime: null,
 
   initializeProperties: async () => {
     if (get().initialized) return;
@@ -38,11 +115,25 @@ export const propertyStore = create<PropertyStore>((set, get) => ({
       set({ 
         properties: properties, 
         initialized: true,
-        isLoading: false 
+        isLoading: false,
+        lastFetchTime: Date.now(),
+        error: null
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      set({ error: errorMessage, isLoading: false });
+      const errorState = createErrorState(error);
+      set({ error: errorState, isLoading: false });
+      
+      // Show user-friendly toast messages
+      if (errorState.type === 'network') {
+        toast.error('Connection failed. Please check your internet connection.');
+      } else if (errorState.type === 'unauthorized') {
+        toast.error('Please log in to access properties.');
+      } else if (errorState.type === 'server') {
+        toast.error('Server is temporarily unavailable. Please try again later.');
+      } else {
+        toast.error('Failed to load properties. Please try again.');
+      }
+      
       console.error('Failed to initialize properties:', error);
     }
   },
@@ -58,9 +149,9 @@ export const propertyStore = create<PropertyStore>((set, get) => ({
       toast.success('Property added successfully!');
       return true;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      set({ error: errorMessage, isLoading: false });
-      toast.error(`Failed to add property: ${errorMessage}`);
+      const errorState = createErrorState(error);
+      set({ error: errorState, isLoading: false });
+      toast.error(`Failed to add property: ${errorState.message}`);
       return false;
     }
   },
@@ -78,9 +169,9 @@ export const propertyStore = create<PropertyStore>((set, get) => ({
       toast.success('Property updated successfully!');
       return true;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      set({ error: errorMessage, isLoading: false });
-      toast.error(`Failed to update property: ${errorMessage}`);
+      const errorState = createErrorState(error);
+      set({ error: errorState, isLoading: false });
+      toast.error(`Failed to update property: ${errorState.message}`);
       return false;
     }
   },
@@ -97,9 +188,9 @@ export const propertyStore = create<PropertyStore>((set, get) => ({
       toast.success(`${ids.length} property(ies) deleted successfully!`);
       return true;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      set({ error: errorMessage, isLoading: false });
-      toast.error(`Failed to delete properties: ${errorMessage}`);
+      const errorState = createErrorState(error);
+      set({ error: errorState, isLoading: false });
+      toast.error(`Failed to delete properties: ${errorState.message}`);
       return false;
     }
   },
@@ -113,8 +204,8 @@ export const propertyStore = create<PropertyStore>((set, get) => ({
         isLoading: false 
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      set({ error: errorMessage, isLoading: false });
+      const errorState = createErrorState(error);
+      set({ error: errorState, isLoading: false });
       console.error('Failed to refresh properties:', error);
     }
   },
@@ -127,8 +218,26 @@ export const propertyStore = create<PropertyStore>((set, get) => ({
     set({ isLoading: loading });
   },
 
+  retryLastOperation: async () => {
+    const state = get();
+    if (!state.error || !state.error.retryable) {
+      return;
+    }
+    
+    // Retry the last failed operation
+    if (!state.initialized) {
+      await get().initializeProperties();
+    } else {
+      await get().refreshProperties();
+    }
+  },
+
   setError: (error) => {
     set({ error });
+  },
+
+  clearError: () => {
+    set({ error: null });
   },
 }));
 
@@ -155,6 +264,3 @@ export const updateProperty = (id: string, property: Partial<DashboardProperty>)
   propertyStore.getState().updateProperty(id, property);
 export const deleteProperties = (ids: string[]) => 
   propertyStore.getState().deleteProperties(ids);
-
-// Export types
-export type { DashboardProperty };

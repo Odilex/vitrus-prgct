@@ -11,8 +11,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search, Plus, Edit, Eye, Trash2, Filter, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
-import { propertyService } from "@/lib/api/property";
-import { Property } from "@/lib/types/property";
+import { usePropertyStore } from "@/lib/propertyStore";
+import { PropertyErrorBoundary, PropertyErrorInline } from "@/components/ui/property-error-boundary";
+import { PropertyService } from "@/lib/propertyService";
+import { ErrorHandler } from "@/lib/errorHandler";
+import type { Property } from "@/lib/types/property";
 import RealTimePropertyUpdates from "@/components/ui/real-time-property-updates";
 import RealTimeDemo from "@/components/ui/real-time-demo";
 
@@ -28,8 +31,19 @@ interface PropertyStats {
 
 export default function PropertiesManagementPage() {
   const router = useRouter();
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { 
+    properties, 
+    isLoading, 
+    error, 
+    retryLastOperation, 
+    clearError, 
+    refreshProperties 
+  } = usePropertyStore();
+  
+  const [propertiesData, setPropertiesData] = useState<Property[]>([]);
+  const [loadingProperties, setLoadingProperties] = useState(true);
+  const [propertiesError, setPropertiesError] = useState<string | null>(null);
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -37,32 +51,66 @@ export default function PropertiesManagementPage() {
   const [sortBy, setSortBy] = useState("newest");
   const [selectedProperties, setSelectedProperties] = useState<string[]>([]);
   
-  const stats = {
-    total: properties.length,
-    active: properties.filter(p => p.status === 'active').length,
-    pending: properties.filter(p => p.status === 'pending').length,
-    sold: properties.filter(p => p.status === 'sold').length
-  };
-  
+  // Load properties using PropertyService
   useEffect(() => {
-    const fetchProperties = async () => {
+    const loadProperties = async () => {
       try {
-        setIsLoading(true);
-        const fetchedProperties = await propertyService.getAll();
-        setProperties(fetchedProperties);
+        setLoadingProperties(true);
+        setPropertiesError(null);
+        
+        const result = await PropertyService.getAll();
+        if (result) {
+          setPropertiesData(result);
+        } else {
+          throw new Error('Failed to load properties');
+        }
       } catch (error) {
-        console.error('Error fetching properties:', error);
-        toast.error('Failed to load properties');
+        const errorMessage = ErrorHandler.handle(error);
+        setPropertiesError(errorMessage);
+        toast.error(`Failed to load properties: ${errorMessage}`);
       } finally {
-        setIsLoading(false);
+        setLoadingProperties(false);
       }
     };
     
-    fetchProperties();
+    loadProperties();
   }, []);
   
+  // Use enhanced properties data for stats
+  const currentProperties = propertiesData.length > 0 ? propertiesData : properties;
+  const stats = {
+    total: currentProperties.length,
+    active: currentProperties.filter(p => p.status === 'active').length,
+    pending: currentProperties.filter(p => p.status === 'pending').length,
+    sold: currentProperties.filter(p => p.status === 'sold').length,
+    totalValue: currentProperties.reduce((sum, p) => sum + (p.price || 0), 0),
+    averagePrice: currentProperties.length > 0 ? currentProperties.reduce((sum, p) => sum + (p.price || 0), 0) / currentProperties.length : 0
+  };
+  
+  // Handle manual refresh with enhanced error handling
+  const handleRefresh = async () => {
+    try {
+      setLoadingProperties(true);
+      setPropertiesError(null);
+      
+      const result = await PropertyService.getAll();
+      if (result) {
+        setPropertiesData(result);
+        toast.success('Properties refreshed successfully');
+      } else {
+        throw new Error('Failed to refresh properties');
+      }
+    } catch (error) {
+      const errorMessage = ErrorHandler.handle(error);
+      setPropertiesError(errorMessage);
+      toast.error(`Failed to refresh properties: ${errorMessage}`);
+    } finally {
+      setLoadingProperties(false);
+    }
+  };
+  
   // Filter properties based on current filters
-  const filteredProperties = properties.filter(property => {
+  const filteredProperties = currentProperties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          property.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          property.address.toLowerCase().includes(searchQuery.toLowerCase());
@@ -100,49 +148,81 @@ export default function PropertiesManagementPage() {
       switch (action) {
         case "delete":
           if (confirm(`Are you sure you want to delete ${selectedProperties.length} properties?`)) {
-            await Promise.all(selectedProperties.map(id => propertyService.delete(id)));
-            setProperties(prev => prev.filter(p => !selectedProperties.includes(p.id)));
-            setSelectedProperties([]);
-            toast.success(`${selectedProperties.length} properties deleted`);
+            const results = await Promise.all(
+                selectedProperties.map(id => PropertyService.delete(id))
+              );
+              
+              const failedDeletes = results.filter((r: boolean) => !r);
+            if (failedDeletes.length > 0) {
+              toast.error(`Failed to delete ${failedDeletes.length} properties`);
+            } else {
+              setPropertiesData(prev => prev.filter(p => !selectedProperties.includes(p.id)));
+              setSelectedProperties([]);
+              toast.success(`${selectedProperties.length} properties deleted`);
+            }
           }
           break;
         case "activate":
-          await Promise.all(selectedProperties.map(id => 
-            propertyService.update(id, { status: 'active' })
-          ));
-          setProperties(prev => prev.map(p => 
-            selectedProperties.includes(p.id) ? { ...p, status: 'active' as const } : p
-          ));
-          setSelectedProperties([]);
-          toast.success(`${selectedProperties.length} properties activated`);
+          const activateResults = await Promise.all(
+              selectedProperties.map(id => 
+                PropertyService.update(id, { status: 'active' })
+              )
+            );
+            
+            const failedActivates = activateResults.filter((r: Property | null) => !r);
+          if (failedActivates.length > 0) {
+            toast.error(`Failed to activate ${failedActivates.length} properties`);
+          } else {
+            setPropertiesData(prev => prev.map(p => 
+              selectedProperties.includes(p.id) ? { ...p, status: 'active' as const } : p
+            ));
+            setSelectedProperties([]);
+            toast.success(`${selectedProperties.length} properties activated`);
+          }
           break;
         case "deactivate":
-          await Promise.all(selectedProperties.map(id => 
-            propertyService.update(id, { status: 'inactive' })
-          ));
-          setProperties(prev => prev.map(p => 
-            selectedProperties.includes(p.id) ? { ...p, status: 'inactive' as const } : p
-          ));
-          setSelectedProperties([]);
-          toast.success(`${selectedProperties.length} properties deactivated`);
+          const deactivateResults = await Promise.all(
+              selectedProperties.map(id => 
+                PropertyService.update(id, { status: 'inactive' })
+              )
+            );
+            
+            const failedDeactivates = deactivateResults.filter((r: Property | null) => !r);
+          if (failedDeactivates.length > 0) {
+            toast.error(`Failed to deactivate ${failedDeactivates.length} properties`);
+          } else {
+            setPropertiesData(prev => prev.map(p => 
+              selectedProperties.includes(p.id) ? { ...p, status: 'inactive' as const } : p
+            ));
+            setSelectedProperties([]);
+            toast.success(`${selectedProperties.length} properties deactivated`);
+          }
           break;
         default:
           break;
       }
     } catch (error) {
-      console.error('Error performing bulk action:', error);
-      toast.error('Failed to perform bulk action');
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to perform bulk action: ${errorMessage}`);
     }
   };
   
   const deleteProperties = async (propertyIds: string[]) => {
     try {
-      await Promise.all(propertyIds.map(id => propertyService.delete(id)));
-      setProperties(prev => prev.filter(p => !propertyIds.includes(p.id)));
+      const results = await Promise.all(
+        propertyIds.map(id => PropertyService.delete(id))
+      );
+      
+      const failedDeletes = results.filter((r: boolean) => !r);
+      if (failedDeletes.length > 0) {
+        throw new Error(`Failed to delete ${failedDeletes.length} properties`);
+      }
+      
+      setPropertiesData(prev => prev.filter(p => !propertyIds.includes(p.id)));
       setSelectedProperties(prev => prev.filter(id => !propertyIds.includes(id)));
     } catch (error) {
-      console.error('Error deleting properties:', error);
-      toast.error('Failed to delete properties');
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to delete properties: ${errorMessage}`);
       throw error;
     }
   };
@@ -165,12 +245,80 @@ export default function PropertiesManagementPage() {
     );
   };
   
-  const propertyTypes = [...new Set(properties.map(p => p.propertyType))];
-  const locations = [...new Set(properties.map(p => `${p.city}, ${p.state}`))];
+  const propertyTypes = [...new Set(currentProperties.map(p => p.propertyType))];
+  const locations = [...new Set(currentProperties.map(p => `${p.city}, ${p.state}`))];
   
+  // Show error boundary if there's an error and no cached data
+  if (propertiesError && !loadingProperties && currentProperties.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Property Management</h1>
+              <p className="text-slate-400">Manage your property listings and track performance</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center max-w-md">
+              <div className="text-red-500 text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Error Loading Properties
+              </h2>
+              <p className="text-slate-300 mb-6">{propertiesError}</p>
+              <div className="space-x-4">
+                <Button
+                  onClick={handleRefresh}
+                  className="bg-cyan-600 hover:bg-cyan-700"
+                  disabled={loadingProperties}
+                >
+                  {loadingProperties ? 'Retrying...' : 'Retry'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Show inline error if there's an error but we have cached data */}
+        {propertiesError && currentProperties.length > 0 && (
+          <div className="mb-6 p-4 bg-red-900/20 border border-red-700 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="text-red-400">⚠️</div>
+                <div>
+                  <h3 className="text-red-400 font-medium">Error Loading Latest Data</h3>
+                  <p className="text-red-300 text-sm">{propertiesError}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRefresh}
+                  disabled={loadingProperties}
+                  className="border-red-700 text-red-400 hover:bg-red-900/20"
+                >
+                  {loadingProperties ? 'Retrying...' : 'Retry'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setPropertiesError(null)}
+                  className="text-red-400 hover:bg-red-900/20"
+                >
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -178,6 +326,15 @@ export default function PropertiesManagementPage() {
             <p className="text-slate-400">Manage your property listings and track performance</p>
           </div>
           <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={loadingProperties}
+              className="border-slate-700 text-slate-300 hover:bg-slate-800"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {loadingProperties ? 'Refreshing...' : 'Refresh'}
+            </Button>
             <Button
               variant="outline"
               onClick={() => router.push("/dashboard")}
@@ -409,10 +566,10 @@ export default function PropertiesManagementPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-slate-300">{property.type}</TableCell>
-                      <TableCell className="text-slate-300">{property.location}</TableCell>
+                      <TableCell className="text-slate-300">{property.propertyType}</TableCell>
+                      <TableCell className="text-slate-300">{`${property.address}, ${property.city}, ${property.state}`}</TableCell>
                       <TableCell className="text-white font-medium">
-                        {property.priceFormatted}
+                        ${property.price?.toLocaleString()}
                       </TableCell>
                       <TableCell>{getStatusBadge(property.status)}</TableCell>
                       <TableCell className="text-slate-300">{property.views || 0}</TableCell>

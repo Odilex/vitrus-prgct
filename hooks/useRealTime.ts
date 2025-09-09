@@ -38,12 +38,14 @@ export function useRealTimeEvent<K extends keyof RealTimeEvents>(
   handlerRef.current = handler;
 
   useEffect(() => {
-    const stableHandler = (data: Parameters<RealTimeEvents[K]>[0]) => handlerRef.current(data);
+    const stableHandler = (data: any) => {
+      (handlerRef.current as any)(data);
+    };
     
-    realTimeService.on(event, stableHandler);
+    realTimeService.on(event, stableHandler as RealTimeEvents[K]);
     
     return () => {
-      realTimeService.off(event, stableHandler);
+      realTimeService.off(event, stableHandler as RealTimeEvents[K]);
     };
   }, [event, ...dependencies]);
 }
@@ -192,7 +194,10 @@ export function usePropertyUpdates(onPropertyUpdate?: (data: Parameters<RealTime
 }
 
 // Hook for real-time tour updates
-export function useTourUpdates(onTourUpdate?: (data: Parameters<RealTimeEvents['tour_updated']>[0]) => void) {
+export function useTourUpdates(
+  onTourUpdate?: (data: Parameters<RealTimeEvents['tour_updated']>[0]) => void,
+  onTourStatusUpdate?: (data: Parameters<RealTimeEvents['tour_status_updated']>[0]) => void
+) {
   useRealTimeEvent('tour_updated', (data) => {
     console.log('Tour updated:', data);
     onTourUpdate?.(data);
@@ -200,8 +205,8 @@ export function useTourUpdates(onTourUpdate?: (data: Parameters<RealTimeEvents['
 
   useRealTimeEvent('tour_status_updated', (data) => {
     console.log('Tour status updated:', data);
-    onTourUpdate?.(data);
-  }, [onTourUpdate]);
+    onTourStatusUpdate?.(data);
+  }, [onTourStatusUpdate]);
 }
 
 // Hook for real-time notifications

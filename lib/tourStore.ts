@@ -33,7 +33,7 @@ const useTourStoreBase = create<TourStore>((set, get) => ({
     
     set({ isLoading: true, error: null });
     try {
-      const response = await tourApi.getTours();
+      const response = await tourApi.getAll();
       if (response.success && response.data) {
         set({ 
           tours: response.data, 
@@ -41,7 +41,7 @@ const useTourStoreBase = create<TourStore>((set, get) => ({
           isLoading: false 
         });
       } else {
-        throw new Error(response.error || 'Failed to fetch tours');
+        throw new Error(response.error?.message || 'Failed to fetch tours');
       }
     } catch (error) {
       console.error('Error initializing tours:', error);
@@ -56,7 +56,7 @@ const useTourStoreBase = create<TourStore>((set, get) => ({
   addTour: async (tourData) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await tourApi.createTour(tourData);
+      const response = await tourApi.create(tourData);
       if (response.success && response.data) {
         set(state => ({ 
           tours: [response.data!, ...state.tours],
@@ -65,7 +65,7 @@ const useTourStoreBase = create<TourStore>((set, get) => ({
         toast.success('Tour scheduled successfully');
         return true;
       } else {
-        throw new Error(response.error || 'Failed to schedule tour');
+        throw new Error(response.error?.message || 'Failed to schedule tour');
       }
     } catch (error) {
       console.error('Error adding tour:', error);
@@ -81,7 +81,7 @@ const useTourStoreBase = create<TourStore>((set, get) => ({
   updateTour: async (id, updates) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await tourApi.updateTour(id, updates);
+      const response = await tourApi.update(id, updates);
       if (response.success && response.data) {
         set(state => ({
           tours: state.tours.map(tour => 
@@ -92,7 +92,7 @@ const useTourStoreBase = create<TourStore>((set, get) => ({
         toast.success('Tour updated successfully');
         return true;
       } else {
-        throw new Error(response.error || 'Failed to update tour');
+        throw new Error(response.error?.message || 'Failed to update tour');
       }
     } catch (error) {
       console.error('Error updating tour:', error);
@@ -108,10 +108,10 @@ const useTourStoreBase = create<TourStore>((set, get) => ({
   deleteTours: async (ids) => {
     set({ isLoading: true, error: null });
     try {
-      const deletePromises = ids.map(id => tourApi.deleteTour(id));
+      const deletePromises = ids.map(id => tourApi.delete(id));
       const results = await Promise.all(deletePromises);
       
-      const failedDeletes = results.filter(result => !result.success);
+      const failedDeletes = results.filter((result: { success: boolean }) => !result.success);
       if (failedDeletes.length > 0) {
         throw new Error(`Failed to delete ${failedDeletes.length} tour(s)`);
       }
@@ -163,9 +163,6 @@ export const useTourStore = () => {
 // Legacy compatibility functions
 export const getTours = () => useTourStoreBase.getState().tours;
 export const getTourById = (id: string) => useTourStoreBase.getState().getTourById(id);
-export const addTour = (data: Partial<DashboardTour>) => useTourStoreBase.getState().addTour(data);
+export const addTour = (data: Omit<DashboardTour, 'id' | 'createdAt' | 'updatedAt'>) => useTourStoreBase.getState().addTour(data);
 export const updateTour = (id: string, updates: Partial<DashboardTour>) => useTourStoreBase.getState().updateTour(id, updates);
 export const deleteTours = (ids: string[]) => useTourStoreBase.getState().deleteTours(ids);
-
-// Export types
-export type { DashboardTour };

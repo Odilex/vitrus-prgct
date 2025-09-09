@@ -181,7 +181,7 @@ export const useAuthStore = create<AuthStore>()(
           });
 
           return true;
-        } catch (_error) {
+        } catch {
           // If refresh fails, logout user
           get().logout();
           return false;
@@ -230,7 +230,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ error: null });
       },
 
-      getAuthHeaders: () => {
+      getAuthHeaders: (): Record<string, string> => {
         const { tokens } = get();
         
         if (!tokens?.access_token) {
@@ -255,7 +255,7 @@ export const useAuthStore = create<AuthStore>()(
           const currentTime = Date.now() / 1000;
           
           return payload.exp < currentTime;
-        } catch (_error) {
+        } catch {
           return true;
         }
       },
@@ -335,7 +335,7 @@ export class AuthService {
             error.status = retryResponse.status;
             error.details = errorData.errors;
             throw error;
-          } catch (_parseError) {
+          } catch {
             // If we can't parse the error response, throw the original error
             throw new Error(errorMessage);
           }
@@ -368,7 +368,7 @@ export class AuthService {
         error.status = response.status;
         error.details = errorData.errors;
         throw error;
-      } catch (_parseError) {
+      } catch {
         // If we can't parse the error response, throw the original error
         throw new Error(errorMessage);
       }

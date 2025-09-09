@@ -3,6 +3,59 @@ import { AuthService } from '../auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
+// Custom error types for better error handling
+export class PropertyError extends Error {
+  constructor(message: string, public code: string, public status?: number) {
+    super(message);
+    this.name = 'PropertyError';
+  }
+}
+
+export class NetworkError extends PropertyError {
+  constructor(message: string = 'Network connection failed') {
+    super(message, 'NETWORK_ERROR');
+  }
+}
+
+export class ValidationError extends PropertyError {
+  constructor(message: string, public field?: string) {
+    super(message, 'VALIDATION_ERROR', 400);
+  }
+}
+
+export class NotFoundError extends PropertyError {
+  constructor(message: string = 'Property not found') {
+    super(message, 'NOT_FOUND', 404);
+  }
+}
+
+export class UnauthorizedError extends PropertyError {
+  constructor(message: string = 'Unauthorized access') {
+    super(message, 'UNAUTHORIZED', 401);
+  }
+}
+
+// Retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 1000,
+  maxDelay: 5000,
+};
+
+// Utility function for retrying requests
+async function withRetry<T>(fn: () => Promise<T>, retries = RETRY_CONFIG.maxRetries): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries > 0 && (error instanceof NetworkError || (error instanceof PropertyError && error.status && error.status >= 500))) {
+      const delay = Math.min(RETRY_CONFIG.baseDelay * (RETRY_CONFIG.maxRetries - retries + 1), RETRY_CONFIG.maxDelay);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return withRetry(fn, retries - 1);
+    }
+    throw error;
+  }
+}
+
 // Database property interface
 interface DbProperty {
   id: string;
@@ -27,6 +80,11 @@ interface DbProperty {
   created_at?: string;
   updated_at?: string;
   user_id?: string;
+  virtual_tour_url?: string;
+  views_count?: number;
+  agent_id?: string;
+  listing_date?: string;
+  amenities?: string[];
 }
 
 // Transform database property to frontend Property interface
@@ -43,8 +101,8 @@ function transformProperty(dbProperty: DbProperty): Property {
     bedrooms: dbProperty.bedrooms || 0,
     bathrooms: dbProperty.bathrooms || 0,
     squareFootage: dbProperty.square_feet || 0,
-    propertyType: dbProperty.property_type || 'other',
-    status: dbProperty.status || 'active',
+    propertyType: (dbProperty.property_type as 'house' | 'apartment' | 'condo' | 'townhouse' | 'villa' | 'other') || 'other',
+    status: (dbProperty.status as 'active' | 'pending' | 'sold' | 'inactive') || 'active',
     images: Array.isArray(dbProperty.images) ? dbProperty.images : [],
     features: Array.isArray(dbProperty.features) ? dbProperty.features : [],
     virtualTourUrl: dbProperty.virtual_tour_url,
@@ -56,7 +114,7 @@ function transformProperty(dbProperty: DbProperty): Property {
     yearBuilt: dbProperty.year_built,
     lotSize: dbProperty.lot_size,
     parkingSpaces: dbProperty.garage_spaces,
-    hasGarage: dbProperty.garage_spaces > 0,
+    hasGarage: (dbProperty.garage_spaces || 0) > 0,
     hasPool: Array.isArray(dbProperty.amenities) ? dbProperty.amenities.includes('Swimming Pool') : false,
     hasGarden: Array.isArray(dbProperty.amenities) ? dbProperty.amenities.includes('Garden') : false,
     petFriendly: Array.isArray(dbProperty.features) ? dbProperty.features.includes('Pet Friendly') : false,
@@ -66,36 +124,74 @@ function transformProperty(dbProperty: DbProperty): Property {
 
 class PropertyService {
   async getAll(): Promise<Property[]> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/properties`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    return withRetry(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/properties`);
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new UnauthorizedError('Authentication required to fetch properties');
+          }
+          if (response.status >= 500) {
+            throw new PropertyError(`Server error: ${response.status}`, 'SERVER_ERROR', response.status);
+          }
+          throw new PropertyError(`Failed to fetch properties: ${response.status}`, 'FETCH_ERROR', response.status);
+        }
+        
+        const data = await response.json();
+        const properties = data.properties || [];
+        return properties.map(transformProperty);
+      } catch (error) {
+        if (error instanceof PropertyError) {
+          throw error;
+        }
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          throw new NetworkError('Failed to connect to server');
+        }
+        console.error('Error fetching properties:', error);
+        throw new PropertyError('Unexpected error while fetching properties', 'UNKNOWN_ERROR');
       }
-      const data = await response.json();
-      const properties = data.properties || [];
-      return properties.map(transformProperty);
-    } catch (error) {
-      console.error('Error fetching properties:', error);
-      throw error;
-    }
+    });
   }
 
   async getById(id: string): Promise<Property | null> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/properties/${id}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      const property = data.property || data;
-      return property ? transformProperty(property) : null;
-    } catch (error) {
-      console.error('Error fetching property:', error);
-      throw error;
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      throw new ValidationError('Property ID is required and must be a valid string', 'id');
     }
+
+    return withRetry(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/properties/${encodeURIComponent(id)}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new NotFoundError(`Property with ID ${id} not found`);
+          }
+          if (response.status === 401) {
+            throw new UnauthorizedError('Authentication required to fetch property');
+          }
+          if (response.status >= 500) {
+            throw new PropertyError(`Server error: ${response.status}`, 'SERVER_ERROR', response.status);
+          }
+          throw new PropertyError(`Failed to fetch property: ${response.status}`, 'FETCH_ERROR', response.status);
+        }
+        
+        const data = await response.json();
+        if (!data.property) {
+          throw new PropertyError('Invalid response format: missing property data', 'INVALID_RESPONSE');
+        }
+        return transformProperty(data.property);
+      } catch (error) {
+        if (error instanceof PropertyError) {
+          throw error;
+        }
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+          throw new NetworkError('Failed to connect to server');
+        }
+        console.error('Error fetching property:', error);
+        throw new PropertyError('Unexpected error while fetching property', 'UNKNOWN_ERROR');
+      }
+    });
   }
 
   async create(property: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>): Promise<Property> {

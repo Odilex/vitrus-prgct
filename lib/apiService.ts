@@ -9,21 +9,38 @@ export interface Property {
   title: string;
   description: string;
   price: number;
-  location: string;
-  type: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
   bedrooms: number;
   bathrooms: number;
-  square_feet: number;
+  squareFootage: number;
+  propertyType: 'house' | 'apartment' | 'condo' | 'townhouse' | 'villa' | 'other';
+  status: 'active' | 'pending' | 'sold' | 'inactive';
   images: string[];
-  virtualTour?: string;
-  amenities: string[];
-  status: 'active' | 'sold' | 'pending' | 'inactive';
-  owner: {
+  features: string[];
+  featured?: boolean;
+  virtualTourUrl?: string;
+  views?: number;
+  createdAt: string;
+  updatedAt: string;
+  agentId?: string;
+  listingDate: string;
+  yearBuilt?: number;
+  lotSize?: number;
+  parkingSpaces?: number;
+  hasGarage?: boolean;
+  hasPool?: boolean;
+  hasGarden?: boolean;
+  petFriendly?: boolean;
+  furnished?: boolean;
+  owner?: {
     name: string;
-    contact: string;
+    email: string;
+    phone: string;
+    whatsapp: string;
   };
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface Client {
@@ -56,118 +73,386 @@ export interface Tour {
   updatedAt?: string;
 }
 
+export interface ApiError {
+  type: 'network' | 'server' | 'client' | 'timeout' | 'validation' | 'auth' | 'not_found' | 'rate_limit' | 'unknown';
+  message: string;
+  code?: string | number;
+  details?: Record<string, unknown>;
+  timestamp: string;
+  retryable: boolean;
+  retryAfter?: number;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
-  error?: string;
+  error?: ApiError;
   message?: string;
 }
 
-// Generic API request function
-async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<ApiResponse<T>> {
-  try {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const response = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-      ...options,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        error: data.error || `HTTP error! status: ${response.status}`,
-      };
-    }
-
-    return {
-      success: true,
-      data: data.data || data,
-    };
-  } catch (error) {
-    console.error('API request failed:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
-  }
+export interface ApiRequestOptions extends RequestInit {
+  timeout?: number;
+  retries?: number;
+  retryDelay?: number;
+  skipRetryOn?: number[];
 }
 
-// Property API functions
+// Enhanced error creation utility
+function createApiError(
+  type: ApiError['type'],
+  message: string,
+  code?: string | number,
+  details?: Record<string, unknown>,
+  retryable: boolean = false,
+  retryAfter?: number
+): ApiError {
+  return {
+    type,
+    message,
+    code,
+    details,
+    timestamp: new Date().toISOString(),
+    retryable,
+    retryAfter
+  };
+}
+
+// Network connectivity check
+function isOnline(): boolean {
+  return typeof navigator !== 'undefined' ? navigator.onLine : true;
+}
+
+// Timeout wrapper for fetch
+function fetchWithTimeout(url: string, options: RequestInit, timeout: number = 30000): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      reject(createApiError('timeout', `Request timeout after ${timeout}ms`, 'TIMEOUT', { url, timeout }, true));
+    }, timeout);
+
+    fetch(url, { ...options, signal: controller.signal })
+      .then(resolve)
+      .catch(reject)
+      .finally(() => clearTimeout(timeoutId));
+  });
+}
+
+// Enhanced API request function with retry logic
+async function apiRequest<T>(
+  endpoint: string,
+  options: ApiRequestOptions = {}
+): Promise<ApiResponse<T>> {
+  const {
+    timeout = 30000,
+    retries = 3,
+    retryDelay = 1000,
+    skipRetryOn = [400, 401, 403, 404, 422],
+    ...fetchOptions
+  } = options;
+
+  let lastError: ApiError = createApiError('unknown', 'Request failed', 'UNKNOWN', {}, false);
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      // Check network connectivity
+      if (!isOnline()) {
+        throw createApiError(
+          'network',
+          'No internet connection available',
+          'OFFLINE',
+          { attempt, maxRetries: retries },
+          true
+        );
+      }
+
+      const url = `${API_BASE_URL}${endpoint}`;
+      const response = await fetchWithTimeout(url, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...fetchOptions.headers,
+        },
+        ...fetchOptions,
+      }, timeout);
+
+      // Handle different response types
+      let data: any;
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType?.includes('application/json')) {
+        data = await response.json();
+      } else {
+        data = await response.text();
+      }
+
+      if (!response.ok) {
+        const errorType = getErrorType(response.status);
+        const shouldRetry = !skipRetryOn.includes(response.status) && attempt < retries;
+        
+        const apiError = createApiError(
+          errorType,
+          data?.message || data?.error || `HTTP ${response.status}: ${response.statusText}`,
+          response.status,
+          { 
+            url, 
+            attempt: attempt + 1, 
+            maxRetries: retries + 1,
+            responseData: data 
+          },
+          shouldRetry,
+          response.headers.get('retry-after') ? parseInt(response.headers.get('retry-after')!) * 1000 : undefined
+        );
+
+        if (!shouldRetry) {
+          return { success: false, error: apiError };
+        }
+        
+        lastError = apiError;
+        
+        // Wait before retry
+        const delay = apiError.retryAfter || retryDelay * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      return {
+        success: true,
+        data: data?.data || data,
+        message: data?.message
+      };
+      
+    } catch (error) {
+      const isLastAttempt = attempt === retries;
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        lastError = createApiError('timeout', 'Request was aborted', 'ABORTED', { attempt: attempt + 1 }, !isLastAttempt);
+      } else if (error && typeof error === 'object' && 'type' in error) {
+        lastError = error as ApiError;
+      } else {
+        lastError = createApiError(
+          'unknown',
+          error instanceof Error ? error.message : 'Unknown error occurred',
+          'UNKNOWN',
+          { attempt: attempt + 1, originalError: error },
+          !isLastAttempt
+        );
+      }
+
+      if (isLastAttempt || !lastError.retryable) {
+        console.error('API request failed:', { endpoint, error: lastError, attempt: attempt + 1 });
+        break;
+      }
+
+      // Wait before retry
+      const delay = retryDelay * Math.pow(2, attempt);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  return { success: false, error: lastError };
+}
+
+// Helper function to determine error type from status code
+function getErrorType(status: number): ApiError['type'] {
+  if (status >= 400 && status < 500) {
+    switch (status) {
+      case 401: return 'auth';
+      case 404: return 'not_found';
+      case 422: return 'validation';
+      case 429: return 'rate_limit';
+      default: return 'client';
+    }
+  }
+  if (status >= 500) return 'server';
+  return 'unknown';
+}
+
+// Property API functions with enhanced error handling
 export const propertyApi = {
   // Get all properties
   getAll: async (filters?: { status?: string; type?: string; location?: string }): Promise<ApiResponse<Property[]>> => {
-    const queryParams = new URLSearchParams();
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) queryParams.append(key, value);
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) queryParams.append(key, value);
+        });
+      }
+      const endpoint = `/properties${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      return await apiRequest<Property[]>(endpoint, {
+        timeout: 15000,
+        retries: 2
       });
+    } catch (error) {
+      return {
+        success: false,
+        error: createApiError('unknown', 'Failed to fetch properties', 'FETCH_ERROR', { filters }, false)
+      };
     }
-    const endpoint = `/properties${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return apiRequest<Property[]>(endpoint);
   },
 
   // Get property by ID
   getById: async (id: string): Promise<ApiResponse<Property>> => {
-    return apiRequest<Property>(`/properties/${id}`);
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      return {
+        success: false,
+        error: createApiError('validation', 'Property ID is required', 'INVALID_ID', { id }, false)
+      };
+    }
+
+    return await apiRequest<Property>(`/properties/${encodeURIComponent(id)}`, {
+      timeout: 10000,
+      retries: 2
+    });
   },
 
   // Create new property
   create: async (property: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<Property>> => {
-    return apiRequest<Property>('/properties', {
+    // Validate required fields
+    const requiredFields = ['title', 'price', 'location', 'type'];
+    const missingFields = requiredFields.filter(field => !property[field as keyof typeof property]);
+    
+    if (missingFields.length > 0) {
+      return {
+        success: false,
+        error: createApiError(
+          'validation',
+          `Missing required fields: ${missingFields.join(', ')}`,
+          'MISSING_FIELDS',
+          { missingFields, property },
+          false
+        )
+      };
+    }
+
+    // Validate price
+    if (typeof property.price !== 'number' || property.price <= 0) {
+      return {
+        success: false,
+        error: createApiError('validation', 'Price must be a positive number', 'INVALID_PRICE', { price: property.price }, false)
+      };
+    }
+
+    return await apiRequest<Property>('/properties', {
       method: 'POST',
       body: JSON.stringify(property),
+      timeout: 20000,
+      retries: 1
     });
   },
 
   // Update property
   update: async (id: string, property: Partial<Property>): Promise<ApiResponse<Property>> => {
-    return apiRequest<Property>(`/properties/${id}`, {
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      return {
+        success: false,
+        error: createApiError('validation', 'Property ID is required', 'INVALID_ID', { id }, false)
+      };
+    }
+
+    if (!property || Object.keys(property).length === 0) {
+      return {
+        success: false,
+        error: createApiError('validation', 'No update data provided', 'NO_UPDATE_DATA', { property }, false)
+      };
+    }
+
+    // Validate price if provided
+    if (property.price !== undefined && (typeof property.price !== 'number' || property.price <= 0)) {
+      return {
+        success: false,
+        error: createApiError('validation', 'Price must be a positive number', 'INVALID_PRICE', { price: property.price }, false)
+      };
+    }
+
+    return await apiRequest<Property>(`/properties/${encodeURIComponent(id)}`, {
       method: 'PUT',
       body: JSON.stringify(property),
+      timeout: 20000,
+      retries: 1
     });
   },
 
   // Delete property
   delete: async (id: string): Promise<ApiResponse<void>> => {
-    return apiRequest<void>(`/properties/${id}`, {
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      return {
+        success: false,
+        error: createApiError('validation', 'Property ID is required', 'INVALID_ID', { id }, false)
+      };
+    }
+
+    return await apiRequest<void>(`/properties/${encodeURIComponent(id)}`, {
       method: 'DELETE',
+      timeout: 15000,
+      retries: 1,
+      skipRetryOn: [400, 401, 403, 404] // Don't retry client errors
     });
   },
 
   // Delete multiple properties
   deleteMultiple: async (ids: string[]): Promise<ApiResponse<void>> => {
-    return apiRequest<void>('/properties/bulk-delete', {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return {
+        success: false,
+        error: createApiError('validation', 'Property IDs array is required', 'INVALID_IDS', { ids }, false)
+      };
+    }
+
+    const invalidIds = ids.filter(id => !id || typeof id !== 'string' || id.trim() === '');
+    if (invalidIds.length > 0) {
+      return {
+        success: false,
+        error: createApiError('validation', 'All property IDs must be valid strings', 'INVALID_IDS', { invalidIds }, false)
+      };
+    }
+
+    return await apiRequest<void>('/properties/bulk-delete', {
       method: 'DELETE',
       body: JSON.stringify({ ids }),
+      timeout: 30000,
+      retries: 1
     });
   },
 };
 
-// Client API functions
+// Client API functions with enhanced error handling
 export const clientApi = {
   // Get all clients
   getAll: async (filters?: { status?: string }): Promise<ApiResponse<Client[]>> => {
-    const queryParams = new URLSearchParams();
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) queryParams.append(key, value);
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters) {
+        Object.entries(filters).forEach(([key, value]) => {
+          if (value) queryParams.append(key, value);
+        });
+      }
+      const endpoint = `/clients${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      return await apiRequest<Client[]>(endpoint, {
+        timeout: 15000,
+        retries: 2
       });
+    } catch (error) {
+      return {
+        success: false,
+        error: createApiError('unknown', 'Failed to fetch clients', 'FETCH_ERROR', { filters }, false)
+      };
     }
-    const endpoint = `/clients${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    return apiRequest<Client[]>(endpoint);
   },
 
   // Get client by ID
   getById: async (id: string): Promise<ApiResponse<Client>> => {
-    return apiRequest<Client>(`/clients/${id}`);
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      return {
+        success: false,
+        error: createApiError('validation', 'Client ID is required', 'INVALID_ID', { id }, false)
+      };
+    }
+
+    return await apiRequest<Client>(`/clients/${encodeURIComponent(id)}`, {
+      timeout: 10000,
+      retries: 2
+    });
   },
 
   // Create new client
