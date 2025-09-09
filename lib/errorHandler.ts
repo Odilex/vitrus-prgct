@@ -107,7 +107,7 @@ export class ErrorHandler {
     message: string,
     onRetry?: () => void
   ): void {
-    const toastOptions: any = {
+    const toastOptions: Record<string, unknown> = {
       duration: error.type === 'network' ? 10000 : 5000,
     };
 
@@ -200,15 +200,15 @@ export class ErrorHandler {
     if (this.isApiError(error)) {
       const boundaryError = new Error(error.message);
       boundaryError.name = `ApiError_${error.type}`;
-      (boundaryError as any).apiError = error;
-      (boundaryError as any).context = context;
+      (boundaryError as Error & { apiError?: ApiError; context?: string }).apiError = error;
+      (boundaryError as Error & { apiError?: ApiError; context?: string }).context = context;
       return boundaryError;
     }
 
     const boundaryError = new Error('Unknown error occurred');
     boundaryError.name = 'UnknownError';
-    (boundaryError as any).originalError = error;
-    (boundaryError as any).context = context;
+    (boundaryError as Error & { originalError?: unknown; context?: string }).originalError = error;
+    (boundaryError as Error & { originalError?: unknown; context?: string }).context = context;
     return boundaryError;
   }
 }

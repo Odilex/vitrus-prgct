@@ -176,7 +176,7 @@ async function apiRequest<T>(
       }, timeout);
 
       // Handle different response types
-      let data: any;
+      let data: unknown;
       const contentType = response.headers.get('content-type');
       
       if (contentType?.includes('application/json')) {

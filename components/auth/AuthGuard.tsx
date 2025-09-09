@@ -27,7 +27,11 @@ export default function AuthGuard({ children, fallback, showInlineLogin = true }
     if (isAuthenticated && !isTokenExpired()) {
       getCurrentUser();
     }
-  }, [isAuthenticated, getCurrentUser, isTokenExpired]);
+    // Handle redirect to login if not authenticated and not showing inline login
+    else if ((!isAuthenticated || isTokenExpired()) && !showInlineLogin && !isLoading) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, getCurrentUser, isTokenExpired, showInlineLogin, isLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,11 +72,7 @@ export default function AuthGuard({ children, fallback, showInlineLogin = true }
   // Show login form if not authenticated
   if (!isAuthenticated || isTokenExpired()) {
     if (!showInlineLogin) {
-      // Redirect to login page
-      useEffect(() => {
-        router.push('/login');
-      }, [router]);
-      
+      // Show redirecting message
       return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
           <div className="text-center">

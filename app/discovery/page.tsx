@@ -26,7 +26,7 @@ export default function DiscoveryPage() {
         
         const result = await PropertyService.getAll();
         
-        const formattedProperties = (result || []).map((prop: any) => ({
+        const formattedProperties = (result || []).map((prop: Property) => ({
           ...prop,
           // Ensure images array exists
           images: prop.images || ['/placeholder-property.jpg']

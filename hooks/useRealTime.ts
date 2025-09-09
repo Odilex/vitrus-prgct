@@ -38,8 +38,8 @@ export function useRealTimeEvent<K extends keyof RealTimeEvents>(
   handlerRef.current = handler;
 
   useEffect(() => {
-    const stableHandler = (data: any) => {
-      (handlerRef.current as any)(data);
+    const stableHandler = (data: unknown) => {
+      (handlerRef.current as RealTimeEvents[K])(data);
     };
     
     realTimeService.on(event, stableHandler as RealTimeEvents[K]);
