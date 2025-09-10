@@ -1,7 +1,10 @@
 import { Property } from '../types/property';
 import { AuthService } from '../auth';
+import { mockProperties } from '../data/mock-properties';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://vitrus-backend.onrender.com/api/v1' : 'http://localhost:5000/api/v1');
+
+// Force deployment refresh
 
 // Custom error types for better error handling
 export class PropertyError extends Error {
@@ -148,8 +151,9 @@ class PropertyService {
         if (error instanceof TypeError && error.message.includes('fetch')) {
           throw new NetworkError('Failed to connect to server');
         }
-        console.error('Error fetching properties:', error);
-        throw new PropertyError('Unexpected error while fetching properties', 'UNKNOWN_ERROR');
+        console.error('Error fetching properties, using mock data:', error);
+        // Return mock data as fallback
+        return mockProperties;
       }
     });
   }
@@ -188,8 +192,9 @@ class PropertyService {
         if (error instanceof TypeError && error.message.includes('fetch')) {
           throw new NetworkError('Failed to connect to server');
         }
-        console.error('Error fetching property:', error);
-        throw new PropertyError('Unexpected error while fetching property', 'UNKNOWN_ERROR');
+        console.error('Error fetching property, using mock data:', error);
+        // Return mock data as fallback
+        return mockProperties.find(p => p.id === id) || null;
       }
     });
   }

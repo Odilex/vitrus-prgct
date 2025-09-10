@@ -59,7 +59,12 @@ export default function Hero() {
             muted={isMuted}
             playsInline
             onLoadedData={() => setIsLoaded(true)}
+            onError={(e) => {
+              console.error('Video loading error:', e);
+              // Fallback to alternative video or image
+            }}
           >
+            <source src="/videos/bcvideo.mp4" type="video/mp4" />
             <source src="/videos/vid1.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>

@@ -9,18 +9,18 @@ import { getTestimonialAvatar } from "@/lib/imageUtils"
 const testimonials = [
   {
     quote:
-      "The virtual tour created for our luxury hotel exceeded all expectations. Our bookings increased by 30% after adding it to our website.",
-    author: "Sarah Johnson",
+      "The virtual tour created for our apartments exceeded all expectations. Our bookings increased by 30% after adding it to our website.",
+    author: "Sarah Mutoni",
     role: "Marketing Director",
-    company: "Grand Luxe Hotels",
-    image: getTestimonialAvatar("Sarah Johnson"),
+    company: "flex apartments",
+    image: getTestimonialAvatar("Sarah Mutoni"),
   },
   {
     quote:
-      "Our museum visitors can now preview exhibits before their visit, dramatically improving the overall experience and engagement.",
+      "Our clients can now preview our properties before their visit, dramatically improving the overall experience and engagement.",
     author: "Michael Chen",
     role: "Curator",
-    company: "Metropolitan Museum",
+    company: "imboni housing",
     image: getTestimonialAvatar("Michael Chen"),
   },
   {

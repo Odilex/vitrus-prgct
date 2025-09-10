@@ -52,6 +52,14 @@ export default function Footer() {
               <a href="https://www.linkedin.com/company/vitrus-tech/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-[#0077B5] transition-colors">
                 <Linkedin className="w-4 h-4" />
               </a>
+              <a href="https://www.tiktok.com/@vitrus_rw/" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="hover:text-[#0077B5] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.87 2.89 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.12v-3.49c-.26-.03-.54-.05-.79-.05a6.37 6.37 0 0 0-6.37 6.37 6.37 6.37 0 0 0 6.37 6.37 6.37 6.37 0 0 0 6.37-6.37V8.37c1.3.94 2.88 1.49 4.61 1.49v-3.17z"/>
+                </svg>
+              </a>
+               <a href="https://www.facebook.com/share/19TDQG9iBT/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-[#0077B5] transition-colors">
+                <Facebook className="w-4 h-4" />
+              </a>
             </div>
           </div>
 
@@ -184,7 +192,7 @@ function SocialIcon({ icon, label }: { icon: React.ReactNode; label: string }) {
   )
 }
 
-function FooterLink({ children, href = "#" }) {
+function FooterLink({ children, href = "#" }: { children: React.ReactNode; href?: string }) {
   return (
     <li>
       <a
