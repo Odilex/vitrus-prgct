@@ -15,7 +15,17 @@ interface VirtualTourProps {
   className?: string;
   onTourStart?: () => void;
   onTourEnd?: () => void;
+  onError?: (error: TourError) => void;
   autoplay?: boolean;
+  maxRetries?: number;
+}
+
+interface TourError {
+  type: 'network' | 'invalid_url' | 'load_failed' | 'timeout' | 'unsupported' | 'unknown';
+  message: string;
+  code?: string;
+  timestamp: number;
+  retryable: boolean;
 }
 
 type TourType = 'youtube' | 'vimeo' | 'matterport' | 'iframe' | 'unknown';
@@ -83,28 +93,114 @@ export default function VirtualTour({
   className = "",
   onTourStart,
   onTourEnd,
-  autoplay = false
+  onError,
+  autoplay = false,
+  maxRetries = 3
 }: VirtualTourProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [currentError, setCurrentError] = useState<TourError | null>(null);
   const [isPlaying, setIsPlaying] = useState(autoplay);
   const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [loadTimeout, setLoadTimeout] = useState<NodeJS.Timeout | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const loadStartTime = useRef<number>(0);
   
   const tourType = tourUrl ? detectTourType(tourUrl) : 'unknown';
   const embedUrl = tourUrl ? getEmbedUrl(tourUrl, tourType) : '';
   
-  // Define handlePlayTour early to avoid hoisting issues
+  // Enhanced error handling
+  const createError = useCallback((type: TourError['type'], message: string, code?: string): TourError => {
+    return {
+      type,
+      message,
+      code,
+      timestamp: Date.now(),
+      retryable: type !== 'unsupported' && type !== 'invalid_url' && retryCount < maxRetries
+    };
+  }, [retryCount, maxRetries]);
+
+  const handleError = useCallback((error: TourError) => {
+    setCurrentError(error);
+    setHasError(true);
+    setIsLoaded(false);
+    onError?.(error);
+    
+    // Clear any existing timeout
+    if (loadTimeout) {
+      clearTimeout(loadTimeout);
+      setLoadTimeout(null);
+    }
+    
+    // Show appropriate toast message
+    if (error.retryable) {
+      toast.error(`${error.message} (Attempt ${retryCount + 1}/${maxRetries})`);
+    } else {
+      toast.error(error.message);
+    }
+  }, [onError, loadTimeout, retryCount, maxRetries]);
+
+  // Network connectivity monitoring
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (hasError && currentError?.type === 'network') {
+        toast.success('Connection restored. You can retry the virtual tour.');
+      }
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      if (isPlaying) {
+        const networkError = createError('network', 'Network connection lost', 'OFFLINE');
+        handleError(networkError);
+      }
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [hasError, currentError, isPlaying, createError, handleError]);
+  
+  // Define handlePlayTour with enhanced error checking
   const handlePlayTour = useCallback(() => {
+    if (!isOnline) {
+      const networkError = createError('network', 'No internet connection available', 'OFFLINE');
+      handleError(networkError);
+      return;
+    }
+    
+    if (!tourUrl || tourType === 'unknown') {
+      const urlError = createError('invalid_url', 'Invalid or unsupported tour URL', 'INVALID_URL');
+      handleError(urlError);
+      return;
+    }
+    
     setIsPlaying(true);
     setLoadingProgress(10);
+    setHasError(false);
+    setCurrentError(null);
+    loadStartTime.current = Date.now();
+    
+    // Set loading timeout (30 seconds)
+    const timeout = setTimeout(() => {
+      const timeoutError = createError('timeout', 'Virtual tour failed to load within 30 seconds', 'LOAD_TIMEOUT');
+      handleError(timeoutError);
+    }, 30000);
+    setLoadTimeout(timeout);
+    
     onTourStart?.();
     toast.info('Starting virtual tour...');
-  }, [onTourStart]);
+  }, [isOnline, tourUrl, tourType, onTourStart, createError, handleError]);
   
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen(prev => {
@@ -141,9 +237,19 @@ export default function VirtualTour({
     }
   }, [isPlaying, isLoaded]);
 
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (loadTimeout) {
+        clearTimeout(loadTimeout);
+      }
+    };
+  }, [loadTimeout]);
+
   useEffect(() => {
     if (tourUrl) {
       setHasError(false);
+      setCurrentError(null);
       setIsLoaded(false);
       setRetryCount(0);
       setLoadingProgress(0);
@@ -254,18 +360,46 @@ export default function VirtualTour({
   }, [isPlaying, isFullscreen, handlePlayTour, toggleFullscreen]);
   
   const handleIframeLoad = useCallback(() => {
+    const loadTime = Date.now() - loadStartTime.current;
+    
     setIsLoaded(true);
     setHasError(false);
+    setCurrentError(null);
     setLoadingProgress(100);
-    toast.success('Virtual tour loaded successfully!');
-  }, []);
+    
+    // Clear timeout
+    if (loadTimeout) {
+      clearTimeout(loadTimeout);
+      setLoadTimeout(null);
+    }
+    
+    toast.success(`Virtual tour loaded successfully! (${Math.round(loadTime / 1000)}s)`);
+  }, [loadTimeout]);
   
   const handleIframeError = useCallback(() => {
-    setHasError(true);
-    setIsLoaded(false);
-    setRetryCount(prev => prev + 1);
-    toast.error('Failed to load virtual tour. Please try again.');
-  }, []);
+    const loadTime = Date.now() - loadStartTime.current;
+    const newRetryCount = retryCount + 1;
+    
+    setRetryCount(newRetryCount);
+    
+    // Determine error type based on context
+    let errorType: TourError['type'] = 'load_failed';
+    let errorMessage = 'Failed to load virtual tour';
+    
+    if (!isOnline) {
+      errorType = 'network';
+      errorMessage = 'Network connection issue';
+    } else if (loadTime < 1000) {
+      errorType = 'invalid_url';
+      errorMessage = 'Invalid or inaccessible tour URL';
+    } else if (tourType === 'unknown') {
+      errorType = 'unsupported';
+      errorMessage = 'Unsupported tour format';
+    }
+    
+    const error = createError(errorType, errorMessage, 'IFRAME_ERROR');
+    handleError(error);
+  }, [retryCount, isOnline, tourType, createError, handleError]);
   
   const handleStopTour = useCallback(() => {
     setIsPlaying(false);
@@ -275,13 +409,45 @@ export default function VirtualTour({
   }, [onTourEnd]);
 
   const handleRetry = useCallback(() => {
+    if (!currentError?.retryable) {
+      toast.error('This error cannot be retried automatically');
+      return;
+    }
+    
+    if (retryCount >= maxRetries) {
+      toast.error(`Maximum retry attempts (${maxRetries}) reached`);
+      return;
+    }
+    
+    if (!isOnline) {
+      toast.error('Please check your internet connection and try again');
+      return;
+    }
+    
     setHasError(false);
+    setCurrentError(null);
     setIsLoaded(false);
     setLoadingProgress(0);
-    if (iframeRef.current) {
-      iframeRef.current.src = iframeRef.current.src;
+    
+    // Clear any existing timeout
+    if (loadTimeout) {
+      clearTimeout(loadTimeout);
+      setLoadTimeout(null);
     }
-  }, []);
+    
+    // Force iframe reload
+    if (iframeRef.current) {
+      const currentSrc = iframeRef.current.src;
+      iframeRef.current.src = '';
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.src = currentSrc;
+        }
+      }, 100);
+    }
+    
+    toast.info(`Retrying virtual tour... (${retryCount + 1}/${maxRetries})`);
+  }, [currentError, retryCount, maxRetries, isOnline, loadTimeout]);
   
   const handleOpenExternal = () => {
     if (tourUrl) {
@@ -338,7 +504,51 @@ export default function VirtualTour({
     );
   }
   
-  if (hasError) {
+  if (hasError && currentError) {
+    const getErrorIcon = () => {
+      switch (currentError.type) {
+        case 'network':
+          return <svg className="h-20 w-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" /></svg>;
+        case 'timeout':
+          return <svg className="h-20 w-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+        case 'invalid_url':
+        case 'unsupported':
+          return <svg className="h-20 w-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>;
+        default:
+          return <svg className="h-20 w-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>;
+      }
+    };
+
+    const getErrorColor = () => {
+      switch (currentError.type) {
+        case 'network': return 'text-orange-400';
+        case 'timeout': return 'text-yellow-400';
+        case 'invalid_url':
+        case 'unsupported': return 'text-purple-400';
+        default: return 'text-red-400';
+      }
+    };
+
+    const getErrorTitle = () => {
+      switch (currentError.type) {
+        case 'network': return 'Connection Issue';
+        case 'timeout': return 'Loading Timeout';
+        case 'invalid_url': return 'Invalid URL';
+        case 'unsupported': return 'Unsupported Format';
+        default: return 'Virtual Tour Unavailable';
+      }
+    };
+
+    const getErrorDescription = () => {
+      switch (currentError.type) {
+        case 'network': return isOnline ? 'Unable to connect to the tour service' : 'No internet connection detected';
+        case 'timeout': return 'The virtual tour took too long to load';
+        case 'invalid_url': return 'The tour URL appears to be invalid or inaccessible';
+        case 'unsupported': return 'This tour format is not currently supported';
+        default: return 'We\'re having trouble loading the virtual tour';
+      }
+    };
+
     return (
       <Card className={`bg-slate-900/50 border-slate-800 ${className}`}>
         <CardContent className="p-0">
@@ -349,34 +559,39 @@ export default function VirtualTour({
               fill
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 to-slate-800/80 flex items-center justify-center">
-              <div className="text-center text-white p-8">
-                <div className="text-red-400 mb-6">
-                  <svg className="h-20 w-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 to-slate-800/90 flex items-center justify-center">
+              <div className="text-center text-white p-8 max-w-md">
+                <div className={`${getErrorColor()} mb-6`}>
+                  {getErrorIcon()}
                 </div>
-                <h3 className="text-white text-xl font-semibold mb-3">Virtual Tour Unavailable</h3>
-                <p className="text-gray-400 mb-4">
-                  We're having trouble loading the virtual tour
+                <h3 className="text-white text-xl font-semibold mb-3">{getErrorTitle()}</h3>
+                <p className="text-gray-400 mb-2">{getErrorDescription()}</p>
+                <p className="text-gray-500 text-sm mb-6">
+                  {currentError.code && `Error: ${currentError.code} • `}
+                  Attempt {retryCount}/{maxRetries}
+                  {!isOnline && ' • Offline'}
                 </p>
-                <p className="text-gray-500 text-sm mb-6">Please try refreshing the page or contact support</p>
-                <div className="flex gap-3 justify-center">
-                  <Button
-                    onClick={handleRetry}
-                    className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Retry {retryCount > 0 && `(${retryCount})`}
-                  </Button>
-                  <Button
-                    onClick={handleOpenExternal}
-                    variant="outline"
-                    className="border-slate-600 text-white hover:bg-slate-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open External
-                  </Button>
+                <div className="flex gap-3 justify-center flex-wrap">
+                  {currentError.retryable && retryCount < maxRetries && (
+                    <Button
+                      onClick={handleRetry}
+                      disabled={!isOnline && currentError.type === 'network'}
+                      className="bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      {!isOnline && currentError.type === 'network' ? 'Waiting for Connection' : 'Retry'}
+                    </Button>
+                  )}
+                  {tourUrl && (
+                    <Button
+                      onClick={handleOpenExternal}
+                      variant="outline"
+                      className="border-slate-600 text-white hover:bg-slate-700 px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Open External
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -471,10 +686,30 @@ export default function VirtualTour({
               </div>
               <div className="absolute bottom-4 left-4 right-4">
                 <div className="bg-black/70 backdrop-blur-sm rounded-lg p-4 text-white">
-                  <h3 className="font-semibold mb-1">Virtual Tour Available</h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold">Virtual Tour Available</h3>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                      <span className="text-xs text-gray-400">{isOnline ? 'Online' : 'Offline'}</span>
+                    </div>
+                  </div>
                   <p className="text-sm text-gray-300 mb-2">
                     Experience this property in an immersive {getTourTypeLabel(tourType).toLowerCase()}
                   </p>
+                  {loadingProgress > 0 && loadingProgress < 100 && (
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+                        <span>Loading...</span>
+                        <span>{Math.round(loadingProgress)}%</span>
+                      </div>
+                      <div className="w-full bg-slate-700 rounded-full h-1.5">
+                        <div 
+                          className="bg-gradient-to-r from-cyan-500 to-cyan-400 h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${loadingProgress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-center gap-4 text-xs text-gray-400">
                     <span>• Press Space or Enter to start</span>
                     <span className="hidden sm:inline">• Press F for fullscreen</span>

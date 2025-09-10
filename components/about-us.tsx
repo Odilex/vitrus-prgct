@@ -60,7 +60,7 @@ export default function AboutUs() {
           </div>
           <h2 className="font-outfit text-3xl md:text-4xl font-bold mb-6 text-white">Pioneering Digital Immersion</h2>
           <p className="text-white/70 text-lg">
-            We're a team of passionate creators, technologists, and visionaries dedicated to transforming how people
+            We&apos;re a team of passionate creators, technologists, and visionaries dedicated to transforming how people
             experience spaces digitally.
           </p>
         </motion.div>

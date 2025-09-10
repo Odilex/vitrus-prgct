@@ -1,5 +1,5 @@
 // Script to create a sample property with Matterport virtual tour
-const PropertyService = require('./lib/api/property');
+import PropertyService from './lib/api/property.js';
 
 // Sample property data with the provided Matterport virtual tour
 const sampleProperty = {

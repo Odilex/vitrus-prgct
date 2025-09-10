@@ -630,7 +630,7 @@ export default function DashboardClientsPage() {
             <DialogHeader>
               <DialogTitle>Assign Property to {selectedClient?.name}</DialogTitle>
               <DialogDescription className="text-slate-400">
-                Add a property to this client's portfolio
+                Add a property to this client&apos;s portfolio
               </DialogDescription>
             </DialogHeader>
             

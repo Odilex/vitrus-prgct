@@ -389,7 +389,7 @@ const TeamManagement = () => {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {teamStats.map((stat, index) => (
+            {teamData.stats.map((stat, index) => (
               <Card key={index} className="bg-slate-900 border-slate-800">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">

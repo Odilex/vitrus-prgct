@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Eye, Heart, MessageSquare, Calendar, MapPin, DollarSign } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,8 +20,8 @@ interface PropertyUpdate {
   userName?: string;
   userAvatar?: string;
   metadata?: {
-    oldValue?: any;
-    newValue?: any;
+    oldValue?: unknown;
+    newValue?: unknown;
     propertyTitle?: string;
     propertyImage?: string;
     propertyPrice?: number;
@@ -51,24 +51,25 @@ export function RealTimePropertyUpdates({
       return;
     }
 
+    const property = update.property;
     const newUpdate: PropertyUpdate = {
-      id: update.id || Date.now().toString(),
+      id: (property.id as string) || Date.now().toString(),
       propertyId: update.propertyId,
-      type: update.type || 'view',
-      title: update.title || 'Property Update',
-      description: update.description || '',
+      type: (property.type as PropertyUpdate['type']) || 'view',
+      title: (property.title as string) || 'Property Update',
+      description: (property.description as string) || '',
       timestamp: new Date(update.timestamp || Date.now()),
-      userId: update.userId,
-      userName: update.userName,
-      userAvatar: update.userAvatar,
-      metadata: update.metadata
+      userId: property.userId as string,
+      userName: property.userName as string,
+      userAvatar: property.userAvatar as string,
+      metadata: property.metadata as PropertyUpdate['metadata']
     };
 
     setUpdates(prev => {
       const updated = [newUpdate, ...prev];
       return updated.slice(0, maxUpdates);
     });
-  }, propertyId);
+  });
 
   const getUpdateIcon = (type: PropertyUpdate['type']) => {
     switch (type) {
@@ -224,18 +225,18 @@ export function RealTimePropertyUpdates({
                     </div>
                   )}
                   
-                  {update.type === 'price_change' && update.metadata?.oldValue && update.metadata?.newValue && (
+                  {update.type === 'price_change' && update.metadata?.oldValue && update.metadata?.newValue ? (
                     <div className="mt-2 text-xs">
                       <span className="text-muted-foreground">Price changed from </span>
                       <span className="line-through text-red-600">
-                        ${update.metadata.oldValue.toLocaleString()}
+                        ${Number(update.metadata.oldValue as string | number).toLocaleString()}
                       </span>
                       <span className="text-muted-foreground"> to </span>
                       <span className="font-medium text-green-600">
-                        ${update.metadata.newValue.toLocaleString()}
+                        ${Number(update.metadata.newValue as string | number).toLocaleString()}
                       </span>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </div>

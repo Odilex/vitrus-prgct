@@ -66,7 +66,7 @@ export default function TermsOfService() {
         </section>
         <section className="mb-6">
           <h2 className="text-xl font-semibold mb-2">9. Limitation of Liability</h2>
-          <p className="text-gray-300">Vitrus is not liable for any damages arising from the use or inability to use our website or services. All services are provided "as is" without warranties of any kind.</p>
+          <p className="text-gray-300">Vitrus is not liable for any damages arising from the use or inability to use our website or services. All services are provided &quot;as is&quot; without warranties of any kind.</p>
         </section>
         <section className="mb-6">
           <h2 className="text-xl font-semibold mb-2">10. Governing Law</h2>

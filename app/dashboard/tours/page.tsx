@@ -52,27 +52,26 @@ import { properties } from "@/lib/propertyData";
 import { TourService } from "@/lib/api/tour";
 import { usePropertyStore } from "@/lib/propertyStore";
 import { useClientStore } from "@/lib/clientStore";
+import { toast } from "sonner";
+import { ErrorHandler } from "@/lib/errorHandler";
+import { Tour } from "@/lib/apiService";
+import type { DashboardClient } from "@/lib/clientStore";
 
-interface Tour {
-  id: string;
-  propertyId: string;
+interface DashboardTour extends Tour {
   propertyTitle: string;
   clientName: string;
   clientEmail: string;
   clientPhone: string;
   date: string;
   time: string;
-  status: 'scheduled' | 'completed' | 'cancelled' | 'pending';
-  notes?: string;
   tourType: 'virtual' | 'physical';
-  createdAt: string;
 }
 
 // Tours data now comes from database via useTourStore
 
 export default function DashboardToursPage() {
   const router = useRouter();
-  const [tours, setTours] = useState([]);
+  const [tours, setTours] = useState<DashboardTour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load tours from API
@@ -80,9 +79,21 @@ export default function DashboardToursPage() {
     try {
       setIsLoading(true);
       const toursData = await TourService.getAll();
-      setTours(toursData || []);
+      // Transform Tour[] to DashboardTour[] by adding required properties
+      const dashboardTours: DashboardTour[] = (toursData || []).map(tour => ({
+        ...tour,
+        propertyTitle: dbProperties.find(p => p.id === tour.propertyId)?.title || 'Unknown Property',
+        clientName: clients.find(c => c.id === tour.clientId)?.full_name || 'Unknown Client',
+        clientEmail: clients.find(c => c.id === tour.clientId)?.email || '',
+        clientPhone: clients.find(c => c.id === tour.clientId)?.phone || '',
+        date: new Date(tour.scheduledDate).toISOString().split('T')[0],
+        time: new Date(tour.scheduledDate).toTimeString().slice(0, 5),
+        tourType: 'physical' as const
+      }));
+      setTours(dashboardTours);
     } catch (error) {
-      console.error('Error loading tours:', error);
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to load tours: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }
@@ -94,9 +105,9 @@ export default function DashboardToursPage() {
   const { properties: dbProperties } = usePropertyStore();
   const { clients } = useClientStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTour, setEditingTour] = useState<Tour | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [editingTour, setEditingTour] = useState<DashboardTour | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -153,16 +164,17 @@ export default function DashboardToursPage() {
       setIsDialogOpen(false);
       resetForm();
     } catch (error) {
-      console.error('Error saving tour:', error);
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to save tour: ${errorMessage}`);
     }
   };
 
-  const handleEdit = (tour: Tour) => {
+  const handleEdit = (tour: DashboardTour) => {
     setEditingTour(tour);
-    const scheduledDate = new Date(tour.scheduledDate);
+    const scheduledDate = new Date(tour.scheduledDate || tour.createdAt || new Date());
     setFormData({
       propertyId: tour.propertyId,
-      clientId: tour.clientId,
+      clientId: tour.clientId || '',
       date: scheduledDate.toISOString().split('T')[0],
       time: scheduledDate.toTimeString().slice(0, 5),
       notes: tour.notes || ''
@@ -180,7 +192,8 @@ export default function DashboardToursPage() {
       // Refresh tours list
       await loadTours();
     } catch (error) {
-      console.error('Error deleting tour:', error);
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to delete tour: ${errorMessage}`);
     }
   };
 
@@ -190,7 +203,8 @@ export default function DashboardToursPage() {
       // Refresh tours list
       await loadTours();
     } catch (error) {
-      console.error('Error updating tour status:', error);
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to update tour status: ${errorMessage}`);
     }
   };
 
@@ -201,12 +215,12 @@ export default function DashboardToursPage() {
     return matchesStatus && matchesSearch;
   });
 
-  const getStatusBadge = (status: Tour['status']) => {
+  const getStatusBadge = (status: DashboardTour['status']) => {
     const statusConfig = {
       scheduled: { color: 'bg-blue-600/20 text-blue-400', icon: Calendar },
-      pending: { color: 'bg-yellow-600/20 text-yellow-400', icon: AlertCircle },
       completed: { color: 'bg-green-600/20 text-green-400', icon: CheckCircle },
-      cancelled: { color: 'bg-red-600/20 text-red-400', icon: XCircle }
+      cancelled: { color: 'bg-red-600/20 text-red-400', icon: XCircle },
+      rescheduled: { color: 'bg-purple-600/20 text-purple-400', icon: Calendar }
     };
     
     const config = statusConfig[status];
@@ -297,7 +311,7 @@ export default function DashboardToursPage() {
                     <SelectContent className="bg-slate-800 border-slate-700">
                       {clients.map((client) => (
                         <SelectItem key={client.id} value={client.id}>
-                          {client.name} - {client.email}
+                          {client.full_name} - {client.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -411,7 +425,7 @@ export default function DashboardToursPage() {
                         const client = clients.find(c => c.id === tour.clientId);
                         return (
                           <div>
-                            <div className="text-white font-medium">{client?.name || 'Unknown Client'}</div>
+                            <div className="text-white font-medium">{client?.full_name || 'Unknown Client'}</div>
                             <div className="text-slate-400 text-sm">{client?.email || ''}</div>
                             <div className="text-slate-400 text-sm">{client?.phone || ''}</div>
                           </div>
@@ -440,7 +454,7 @@ export default function DashboardToursPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        {tour.status === 'pending' && (
+                        {tour.status === 'scheduled' && (
                           <>
                             <Button
                               size="sm"

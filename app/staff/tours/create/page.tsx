@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { ErrorHandler } from "@/lib/errorHandler";
 import StaffSidebar from "@/components/staff/sidebar";
 import { properties } from "@/lib/propertyData";
 
@@ -63,7 +64,8 @@ export default function CreateTour() {
       toast.success("Tour created successfully!");
       router.push("/staff/tours");
     } catch (error) {
-      toast.error("Failed to create tour. Please try again.");
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to create tour: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }

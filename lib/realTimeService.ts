@@ -2,8 +2,9 @@
 
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
+import { ErrorHandler } from './errorHandler';
 
-type RealTimeEventHandler = (data: any) => void;
+type RealTimeEventHandler = (data: unknown) => void;
 
 interface RealTimeEvents {
   // Connection events
@@ -14,8 +15,8 @@ interface RealTimeEvents {
   property_updated: (data: {
     eventType: string;
     propertyId: string;
-    property: any;
-    oldProperty?: any;
+    property: Record<string, unknown>;
+    oldProperty?: Record<string, unknown>;
     timestamp: string;
   }) => void;
   property_viewed: (data: {
@@ -33,8 +34,8 @@ interface RealTimeEvents {
   tour_updated: (data: {
     eventType: string;
     tourId: string;
-    tour: any;
-    oldTour?: any;
+    tour: Record<string, unknown>;
+    oldTour?: Record<string, unknown>;
     timestamp: string;
   }) => void;
   tour_status_updated: (data: {
@@ -48,11 +49,11 @@ interface RealTimeEvents {
   
   // Notification events
   new_notification: (data: {
-    notification: any;
+    notification: Record<string, unknown>;
     timestamp: string;
   }) => void;
   pending_notifications: (data: {
-    notifications: any[];
+    notifications: Record<string, unknown>[];
     count: number;
   }) => void;
   notification_marked_read: (data: { notificationId: string }) => void;
@@ -85,6 +86,8 @@ class RealTimeService {
   private reconnectDelay = 1000;
   private authToken: string | null = null;
   private userId: string | null = null;
+  // Using static ErrorHandler methods
+  private connectionRetryTimer: NodeJS.Timeout | null = null;
 
   constructor() {
     this.setupEventHandlers();
@@ -116,12 +119,19 @@ class RealTimeService {
 
   // Disconnect from the server
   disconnect() {
+    // Clear any pending reconnection attempts
+    if (this.connectionRetryTimer) {
+      clearTimeout(this.connectionRetryTimer);
+      this.connectionRetryTimer = null;
+    }
+    
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
       this.authToken = null;
       this.userId = null;
+      this.reconnectAttempts = 0;
       console.log('Disconnected from real-time service');
     }
   }
@@ -148,7 +158,9 @@ class RealTimeService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
+      const errorMessage = ErrorHandler.handle(error);
+      console.error('Connection error:', errorMessage);
+      toast.error(`Connection failed: ${errorMessage}`);
       this.handleReconnection();
     });
 
@@ -160,22 +172,35 @@ class RealTimeService {
     });
   }
 
-  // Handle reconnection logic
+  // Handle reconnection logic with enhanced error handling
   private handleReconnection() {
+    // Clear any existing retry timer
+    if (this.connectionRetryTimer) {
+      clearTimeout(this.connectionRetryTimer);
+      this.connectionRetryTimer = null;
+    }
+    
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
       
       console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts}) in ${delay}ms`);
+      toast.info(`Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
       
-      setTimeout(() => {
-        if (this.authToken && this.userId) {
-          this.connect(this.authToken, this.userId);
+      this.connectionRetryTimer = setTimeout(() => {
+        try {
+          if (this.authToken && this.userId) {
+            this.connect(this.authToken, this.userId);
+          }
+        } catch (error) {
+          const errorMessage = ErrorHandler.handle(error);
+          console.error('Reconnection attempt failed:', errorMessage);
+          this.handleReconnection(); // Try again
         }
       }, delay);
     } else {
       console.error('Max reconnection attempts reached');
-      toast.error('Lost connection to real-time updates');
+      toast.error('Lost connection to real-time updates. Please refresh the page.');
     }
   }
 
@@ -196,8 +221,9 @@ class RealTimeService {
       },
       
       error: (data) => {
-        console.error('Real-time service error:', data);
-        toast.error(data.message || 'Real-time service error');
+        const errorMessage = ErrorHandler.handle(data);
+        console.error('Real-time service error:', errorMessage);
+        toast.error(`Real-time service error: ${errorMessage}`);
       },
       
       property_updated: (data) => {
@@ -228,9 +254,9 @@ class RealTimeService {
       
       new_notification: (data) => {
         console.log('New notification:', data);
-        const notification = data.notification;
+        const notification = data.notification as { title?: string; message?: string };
         toast.info(notification.title || 'New notification', {
-          description: notification.message
+          description: notification.message || undefined
         });
       },
       
@@ -346,7 +372,7 @@ class RealTimeService {
   getConnectionStatus(): 'connected' | 'disconnected' | 'connecting' {
     if (!this.socket) return 'disconnected';
     if (this.socket.connected) return 'connected';
-    if (this.socket.connecting) return 'connecting';
+    if (!this.socket.disconnected) return 'connecting';
     return 'disconnected';
   }
 

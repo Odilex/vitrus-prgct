@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Bell, X, Check, Info, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,7 @@ interface Notification {
   timestamp: Date;
   read: boolean;
   userId: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface RealTimeNotificationsProps {
@@ -35,16 +35,17 @@ export function RealTimeNotifications({
   const [isOpen, setIsOpen] = useState(false);
 
   // Use the real-time notifications hook
-  useNotificationUpdates((notification) => {
+  useNotificationUpdates((data) => {
+    const notification = data.notification;
     const newNotification: Notification = {
-      id: notification.id || Date.now().toString(),
-      type: notification.type || 'info',
-      title: notification.title || 'Notification',
-      message: notification.message || '',
-      timestamp: new Date(notification.timestamp || Date.now()),
+      id: (notification.id as string) || Date.now().toString(),
+      type: (notification.type as 'info' | 'success' | 'warning' | 'error') || 'info',
+      title: (notification.title as string) || 'Notification',
+      message: (notification.message as string) || '',
+      timestamp: new Date(data.timestamp || Date.now()),
       read: false,
-      userId: notification.userId || '',
-      metadata: notification.metadata
+      userId: (notification.userId as string) || '',
+      metadata: notification.metadata as Record<string, unknown>
     };
 
     setNotifications(prev => {

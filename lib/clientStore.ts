@@ -4,7 +4,7 @@ import ClientService from './api/client';
 import { type Client } from './types/client';
 import { toast } from 'sonner';
 
-export interface DashboardClient extends Client {}
+export type DashboardClient = Client;
 
 interface ClientStore {
   clients: DashboardClient[];
@@ -141,7 +141,7 @@ export const useClientStore = () => {
     if (!store.initialized && !store.isLoading) {
       store.initializeClients();
     }
-  }, [store.initialized, store.isLoading, store.initializeClients]);
+  }, [store, store.initialized, store.isLoading, store.initializeClients]);
   
   return store;
 };
@@ -149,9 +149,9 @@ export const useClientStore = () => {
 // Legacy compatibility functions
 export const getClients = () => useClientStoreBase.getState().clients;
 export const getClientById = (id: string) => useClientStoreBase.getState().getClientById(id);
-export const addClient = (data: Partial<DashboardClient>) => useClientStoreBase.getState().addClient(data);
+export const addClient = (data: Omit<DashboardClient, 'id' | 'createdAt' | 'updatedAt'>) => useClientStoreBase.getState().addClient(data);
 export const updateClient = (id: string, updates: Partial<DashboardClient>) => useClientStoreBase.getState().updateClient(id, updates);
 export const deleteClients = (ids: string[]) => useClientStoreBase.getState().deleteClients(ids);
 
 // Export types
-export type { DashboardClient };
+// DashboardClient is already exported above

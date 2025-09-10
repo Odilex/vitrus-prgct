@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import { motion, AnimatePresence, useInView } from "framer-motion"
 import { Send, Mail, Phone, MapPin, Check, AlertCircle } from "lucide-react"
+import { ErrorHandler } from '@/lib/errorHandler'
 
 export default function Contact() {
   const ref = useRef(null)
@@ -57,14 +58,20 @@ export default function Contact() {
     }
     
     try {
-      await fetch('https://formspree.io/f/xyzpkaqn', {
+      const response = await fetch('https://formspree.io/f/xyzpkaqn', {
         method: 'POST',
         body: formData,
         headers: { 'Accept': 'application/json' },
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       setSubmitted(true)
     } catch (error) {
-      setFormErrors({ submit: 'Failed to send message. Please try again.' })
+      const errorMessage = ErrorHandler.handle(error);
+      setFormErrors({ submit: `Failed to send message: ${errorMessage}` })
     } finally {
       setIsSubmitting(false)
     }

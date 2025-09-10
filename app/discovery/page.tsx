@@ -6,13 +6,16 @@ import PropertySearch from "@/components/property-search";
 import { motion } from "framer-motion";
 import Footer from "@/components/footer";
 import { Property } from "@/lib/types/property";
-import propertyService from "@/lib/api/property";
+import { PropertyService } from "@/lib/propertyService";
+import { ErrorHandler } from "@/lib/errorHandler";
 
 export default function DiscoveryPage() {
   const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+
 
   useEffect(() => {
     // Fetch properties from the API
@@ -20,17 +23,20 @@ export default function DiscoveryPage() {
       try {
         setLoading(true);
         setError(null);
-        const apiProperties = await propertyService.getAll();
-        const formattedProperties = apiProperties.map(prop => ({
+        
+        const result = await PropertyService.getAll();
+        
+        const formattedProperties = (result || []).map((prop: Property) => ({
           ...prop,
           // Ensure images array exists
           images: prop.images || ['/placeholder-property.jpg']
         }));
+        
         setAllProperties(formattedProperties);
         setFilteredProperties(formattedProperties);
       } catch (err) {
-        console.error('Error fetching properties:', err);
-        setError('Failed to load properties. Please try again later.');
+        const errorMessage = ErrorHandler.handle(err);
+        setError(`Failed to load properties: ${errorMessage}`);
       } finally {
         setLoading(false);
       }

@@ -39,9 +39,10 @@ export class UploadService {
       } else {
         return { success: false, error: 'No URL returned from server' };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Upload error:', error);
-      return { success: false, error: error.message || 'Upload failed' };
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -80,9 +81,10 @@ export class UploadService {
       } else {
         return [{ success: false, error: 'No files returned from server' }];
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Multiple upload error:', error);
-      return [{ success: false, error: error.message || 'Upload failed' }];
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      return [{ success: false, error: errorMessage }];
     }
   }
 

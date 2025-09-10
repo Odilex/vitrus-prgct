@@ -10,7 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Upload, ImageIcon, Video, ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
-import PropertyService from '@/lib/api/property';
+import { PropertyService } from "@/lib/propertyService";
+import { ErrorHandler } from "@/lib/errorHandler";
 import { getPropertyImagePlaceholder } from "@/lib/imageUtils";
 import UploadService from '@/lib/api/upload';
 
@@ -146,11 +147,18 @@ export default function UploadPropertyPage() {
         return;
       }
       
+      // Validate price is a valid number
+      const price = parseFloat(formData.price);
+      if (isNaN(price) || price <= 0) {
+        toast.error("Please enter a valid price");
+        return;
+      }
+      
       // Create new property data matching Property interface
       const newPropertyData = {
         title: formData.title,
         description: formData.description,
-        price: parseFloat(formData.price),
+        price: price,
         address: formData.location,
         city: formData.location, // Use location as city for now
         state: "",
@@ -166,44 +174,18 @@ export default function UploadPropertyPage() {
         listingDate: new Date().toISOString()
       };
 
-      // Add property to the database via API
-      const createdProperty = await PropertyService.create(newPropertyData);
+      // Add property to the database via API using enhanced PropertyService
+      const result = await PropertyService.create(newPropertyData);
       
-      if (createdProperty) {
-        toast.success("Property uploaded successfully!");
-        router.push("/dashboard/properties");
-      } else {
-        toast.error("Failed to upload property. Please try again.");
-      }
-    } catch (error: any) {
-      console.error('Error uploading property:', error);
-      
-      // Parse error message for better user feedback
-      let errorMessage = 'Failed to upload property. Please try again.';
-      
-      if (error.message) {
-        if (error.message.includes('HTTP error! status: 400')) {
-          errorMessage = 'Please check your input data - some fields may be invalid';
-        } else if (error.message.includes('HTTP error! status: 401')) {
-          errorMessage = 'Authentication required. Please log in again';
-        } else if (error.message.includes('HTTP error! status: 403')) {
-          errorMessage = 'You do not have permission to create properties';
-        } else if (error.message.includes('HTTP error! status: 500')) {
-          errorMessage = 'Server error. Please try again later';
-        } else if (error.message.includes('Authentication required')) {
-          errorMessage = 'Please log in to upload properties';
-        } else {
-          errorMessage = error.message;
-        }
+      if (!result) {
+        throw new Error('Failed to create property');
       }
       
-      // Show specific validation errors if available
-      if (error?.details && Array.isArray(error.details)) {
-        const validationErrors = error.details.map((detail: any) => detail.msg || detail.message).join(', ');
-        errorMessage = `Validation errors: ${validationErrors}`;
-      }
-      
-      toast.error(errorMessage);
+      toast.success("Property uploaded successfully!");
+      router.push("/dashboard/properties");
+    } catch (error) {
+      const errorMessage = ErrorHandler.handle(error);
+      toast.error(`Failed to create property: ${errorMessage}`);
     } finally {
       setIsLoading(false);
     }

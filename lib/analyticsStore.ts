@@ -33,10 +33,10 @@ interface DashboardAnalytics {
     properties_created: number;
   };
   trends: {
-    properties_over_time: any[];
-    inquiries_over_time: any[];
-    tours_over_time: any[];
-    events_over_time: any[];
+    properties_over_time: Array<{ date: string; count: number }>;
+  inquiries_over_time: Array<{ date: string; count: number }>;
+  tours_over_time: Array<{ date: string; count: number }>;
+  events_over_time: Array<{ date: string; count: number }>;
   };
   breakdowns: {
     inquiry_types: Record<string, number>;
@@ -83,35 +83,39 @@ const PROPERTY_TYPE_COLORS = {
 };
 
 // Transform backend data to frontend format
-const transformDashboardData = (backendData: any): DashboardAnalytics => {
+const transformDashboardData = (backendData: Record<string, unknown>): DashboardAnalytics => {
+  const summary = backendData.summary as Record<string, unknown> || {};
+  const trends = backendData.trends as Record<string, unknown> || {};
+  const breakdowns = backendData.breakdowns as Record<string, unknown> || {};
+  
   return {
     summary: {
-      total_properties: backendData.summary?.total_properties || 0,
-      total_views: backendData.summary?.total_views || 0,
-      total_favorites: backendData.summary?.total_favorites || 0,
-      total_inquiries: backendData.summary?.total_inquiries || 0,
-      total_tours: backendData.summary?.total_tours || 0,
-      properties_created: backendData.summary?.properties_created || 0,
+      total_properties: (summary.total_properties as number) || 0,
+      total_views: (summary.total_views as number) || 0,
+      total_favorites: (summary.total_favorites as number) || 0,
+      total_inquiries: (summary.total_inquiries as number) || 0,
+      total_tours: (summary.total_tours as number) || 0,
+      properties_created: (summary.properties_created as number) || 0,
     },
     trends: {
-      properties_over_time: backendData.trends?.properties_over_time || [],
-      inquiries_over_time: backendData.trends?.inquiries_over_time || [],
-      tours_over_time: backendData.trends?.tours_over_time || [],
-      events_over_time: backendData.trends?.events_over_time || [],
+      properties_over_time: (trends.properties_over_time as Array<{ date: string; count: number }>) || [],
+      inquiries_over_time: (trends.inquiries_over_time as Array<{ date: string; count: number }>) || [],
+      tours_over_time: (trends.tours_over_time as Array<{ date: string; count: number }>) || [],
+      events_over_time: (trends.events_over_time as Array<{ date: string; count: number }>) || [],
     },
     breakdowns: {
-      inquiry_types: backendData.breakdowns?.inquiry_types || {},
-      inquiry_status: backendData.breakdowns?.inquiry_status || {},
-      tour_types: backendData.breakdowns?.tour_types || {},
-      tour_status: backendData.breakdowns?.tour_status || {},
-      event_types: backendData.breakdowns?.event_types || {},
+      inquiry_types: (breakdowns.inquiry_types as Record<string, number>) || {},
+      inquiry_status: (breakdowns.inquiry_status as Record<string, number>) || {},
+      tour_types: (breakdowns.tour_types as Record<string, number>) || {},
+      tour_status: (breakdowns.tour_status as Record<string, number>) || {},
+      event_types: (breakdowns.event_types as Record<string, number>) || {},
     },
-    top_properties: backendData.top_properties || [],
+    top_properties: (backendData.top_properties as Array<{ id: string; title: string; views: number; favorites: number; }>) || [],
   };
 };
 
 // Transform trends data to monthly format
-const transformToMonthlyData = (trends: any): MonthlyData[] => {
+const transformToMonthlyData = (trends: Record<string, unknown>): MonthlyData[] => {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const currentDate = new Date();
   const monthlyData: MonthlyData[] = [];
@@ -122,50 +126,54 @@ const transformToMonthlyData = (trends: any): MonthlyData[] => {
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     
     // Find data for this month in trends
-    const inquiriesData = trends.inquiries_over_time?.find((item: any) => 
-      item.period?.startsWith(monthKey)
+    const inquiriesData = (trends.inquiries_over_time as Array<Record<string, unknown>> || []).find((item: Record<string, unknown>) => 
+      (item.period as string)?.startsWith(monthKey)
     );
-    const toursData = trends.tours_over_time?.find((item: any) => 
-      item.period?.startsWith(monthKey)
+    const toursData = (trends.tours_over_time as Array<Record<string, unknown>> || []).find((item: Record<string, unknown>) => 
+      (item.period as string)?.startsWith(monthKey)
     );
-    const eventsData = trends.events_over_time?.find((item: any) => 
-      item.period?.startsWith(monthKey)
+    const eventsData = (trends.events_over_time as Array<Record<string, unknown>> || []).find((item: Record<string, unknown>) => 
+      (item.period as string)?.startsWith(monthKey)
     );
     
     monthlyData.push({
       month: monthNames[date.getMonth()],
-      views: eventsData?.count || 0,
-      inquiries: inquiriesData?.count || 0,
-      tours: toursData?.count || 0,
+      views: Number(eventsData?.count) || 0,
+      inquiries: Number(inquiriesData?.count) || 0,
+      tours: Number(toursData?.count) || 0,
     });
   }
   
   return monthlyData;
 };
 
+// Property type interface
+interface RawPropertyType {
+  name?: string;
+  count?: number;
+}
+
+// Property analytics interface
+interface PropertyAnalytics {
+  propertyTypes?: RawPropertyType[];
+}
+
 // Transform property analytics to type distribution
-const transformPropertyTypeData = (propertyAnalytics: any): PropertyTypeData[] => {
+const transformPropertyTypeData = (propertyAnalytics: PropertyAnalytics): PropertyTypeData[] => {
   const propertyTypes = propertyAnalytics?.propertyTypes || [];
   
-  return propertyTypes.map((type: any, index: number) => ({
+  return propertyTypes.map((type: RawPropertyType, index: number) => ({
     name: type.name || `Type ${index + 1}`,
     value: type.count || 0,
     color: PROPERTY_TYPE_COLORS[type.name as keyof typeof PROPERTY_TYPE_COLORS] || `#${Math.floor(Math.random()*16777215).toString(16)}`,
   }));
 };
 
-// Transform top properties data
-const transformTopProperties = (topProperties: any[]): TopProperty[] => {
-  return topProperties.map(property => ({
-    id: property.id,
-    name: property.title || property.name,
-    views: property.views || 0,
-    inquiries: 0, // This would need to be calculated from inquiries data
-    tours: 0, // This would need to be calculated from tours data
-  }));
-};
 
-export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
+
+
+
+export const useAnalyticsStore = create<AnalyticsState>((set) => ({
   // Initial state
   dashboardData: null,
   monthlyData: [],
@@ -175,7 +183,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
   error: null,
   
   // Fetch dashboard analytics
-  fetchDashboardAnalytics: async (dateFrom?: string, dateTo?: string) => {
+  fetchDashboardAnalytics: async () => {
     set({ isLoading: true, error: null });
     
     try {
@@ -183,7 +191,7 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
       const dashboardResponse = await analyticsApi.getDashboardStats();
       
       if (!dashboardResponse.success) {
-        throw new Error(dashboardResponse.error || 'Failed to fetch dashboard analytics');
+        throw new Error(dashboardResponse.error?.message || 'Failed to fetch dashboard analytics');
       }
       
       // For now, we'll use the basic dashboard stats and transform them
@@ -239,10 +247,10 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
       const response = await analyticsApi.getPropertyAnalytics();
       
       if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch property analytics');
+        throw new Error(response.error?.message || 'Failed to fetch property analytics');
       }
       
-      const propertyTypeData = transformPropertyTypeData(response.data);
+      const propertyTypeData = transformPropertyTypeData(response.data || {});
       
       set({ 
         propertyTypeData,

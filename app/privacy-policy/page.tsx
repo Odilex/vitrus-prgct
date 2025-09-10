@@ -69,7 +69,7 @@ export default function PrivacyPolicy() {
           <p className="text-gray-300">Your information may be transferred to and maintained on servers located outside your country. By using our services, you consent to such transfers.</p>
         </section>
         <section className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">9. Children's Privacy</h2>
+          <h2 className="text-xl font-semibold mb-2">9. Children&apos;s Privacy</h2>
           <p className="text-gray-300">Our services are not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe a child has provided us with personal information, please contact us immediately.</p>
         </section>
         <section className="mb-6">

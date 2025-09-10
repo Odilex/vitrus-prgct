@@ -17,7 +17,7 @@ export interface Property {
   bedrooms: number;
   bathrooms: number;
   squareFootage: number;
-  propertyType: 'house' | 'apartment' | 'condo' | 'townhouse' | 'other';
+  propertyType: 'house' | 'apartment' | 'condo' | 'townhouse' | 'villa' | 'other';
   status: 'active' | 'pending' | 'sold' | 'inactive';
   images: string[];
   features: string[];
@@ -50,7 +50,7 @@ export interface PropertyFormData {
   bedrooms: number;
   bathrooms: number;
   squareFootage: number;
-  propertyType: 'house' | 'apartment' | 'condo' | 'townhouse' | 'other';
+  propertyType: 'house' | 'apartment' | 'condo' | 'townhouse' | 'villa' | 'other';
   status: 'active' | 'pending' | 'sold' | 'inactive';
   images: File[];
   features: string[];

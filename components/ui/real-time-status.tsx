@@ -18,7 +18,7 @@ export function RealTimeStatus({
   showText = true, 
   size = 'md' 
 }: RealTimeStatusProps) {
-  const { isConnected, connectionStatus } = useRealTimeContext();
+  const { isConnected: _isConnected, connectionStatus } = useRealTimeContext();
 
   const getStatusConfig = () => {
     switch (connectionStatus) {
@@ -113,7 +113,7 @@ export function RealTimeStatusCompact({ className }: { className?: string }) {
 
 // Detailed version for settings/status pages
 export function RealTimeStatusDetailed({ className }: { className?: string }) {
-  const { isConnected, connectionStatus, userId } = useRealTimeContext();
+  const { isConnected: _isConnected, connectionStatus, userId } = useRealTimeContext();
   
   return (
     <div className={cn('flex flex-col gap-2', className)}>
