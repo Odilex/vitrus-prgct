@@ -1,6 +1,6 @@
 // API Service for database operations
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://your-backend-url.com/api' 
+  ? 'https://vitrus-backend.onrender.com/api/v1' 
   : 'http://localhost:5000/api/v1';
 
 // Types
@@ -151,7 +151,7 @@ async function apiRequest<T>(
     ...fetchOptions
   } = options;
 
-  let lastError: ApiError = createApiError('unknown', 'Request failed', 'UNKNOWN', {}, false);
+  let lastError: ApiError | undefined;
   
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -191,7 +191,7 @@ async function apiRequest<T>(
         
         const apiError = createApiError(
           errorType,
-          data?.message || data?.error || `HTTP ${response.status}: ${response.statusText}`,
+          (data as any)?.message || (data as any)?.error || `HTTP ${response.status}: ${response.statusText}`,
           response.status,
           { 
             url, 
@@ -217,8 +217,8 @@ async function apiRequest<T>(
 
       return {
         success: true,
-        data: data?.data || data,
-        message: data?.message
+        data: (data as any)?.data || data,
+        message: (data as any)?.message
       };
       
     } catch (error) {
@@ -249,7 +249,10 @@ async function apiRequest<T>(
     }
   }
 
-  return { success: false, error: lastError };
+  // Fallback error if none was set
+  const finalError = lastError || createApiError('unknown', 'Request failed after all retries', 'UNKNOWN', {}, false);
+
+  return { success: false, error: finalError };
 }
 
 // Helper function to determine error type from status code

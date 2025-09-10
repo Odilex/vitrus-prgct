@@ -7,7 +7,7 @@ export interface UploadResponse {
 }
 
 export class UploadService {
-  private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  private static readonly BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://vitrus-backend.onrender.com' : 'http://localhost:5000');
 
   static async uploadImage(file: File): Promise<UploadResponse> {
     try {

@@ -1,7 +1,7 @@
 import { Property } from '../types/property';
 import { AuthService } from '../auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://vitrus-backend.onrender.com/api/v1' : 'http://localhost:5000/api/v1');
 
 // Custom error types for better error handling
 export class PropertyError extends Error {

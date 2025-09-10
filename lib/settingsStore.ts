@@ -134,12 +134,12 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       
       if (response.success && response.data) {
         set({ 
-          userSettings: response.data,
+          userSettings: response.data as UserSettings,
           isLoading: false 
         });
       } else {
         set({ 
-          error: response.error || 'Failed to fetch user settings',
+          error: (response.error as string) || 'Failed to fetch user settings',
           isLoading: false 
         });
       }
