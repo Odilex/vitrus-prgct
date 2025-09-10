@@ -4,6 +4,8 @@ import { mockProperties } from '../data/mock-properties';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
+// Force deployment refresh
+
 // Custom error types for better error handling
 export class PropertyError extends Error {
   constructor(message: string, public code: string, public status?: number) {
@@ -149,44 +151,16 @@ class PropertyService {
         if (error instanceof TypeError && error.message.includes('fetch')) {
           throw new NetworkError('Failed to connect to server');
         }
-        console.error('Error fetching properties:', error);
-        throw new PropertyError('Unexpected error while fetching properties', 'UNKNOWN_ERROR');
+        console.error('Error fetching properties, using mock data:', error);
+        // Return mock data as fallback
+        return mockProperties;
       }
-<<<<<<< HEAD
-      const data = await response.json();
-      const properties = data.properties || [];
-      return properties.map(transformProperty);
-    } catch (error) {
-      console.error('Error fetching properties, using mock data:', error);
-      // Return mock data as fallback
-      return mockProperties;
-    }
-  }
-
-  async getById(id: string): Promise<Property | null> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/properties/${id}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          return null;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      const property = data.property || data;
-      return property ? transformProperty(property) : null;
-    } catch (error) {
-      console.error('Error fetching property, using mock data:', error);
-      // Return mock data as fallback
-      return mockProperties.find(p => p.id === id) || null;
-=======
     });
   }
 
   async getById(id: string): Promise<Property | null> {
     if (!id || typeof id !== 'string' || id.trim() === '') {
       throw new ValidationError('Property ID is required and must be a valid string', 'id');
->>>>>>> 7ef8d56e5c8c8071491f64aa15a8adc6645121ca
     }
 
     return withRetry(async () => {
@@ -218,8 +192,9 @@ class PropertyService {
         if (error instanceof TypeError && error.message.includes('fetch')) {
           throw new NetworkError('Failed to connect to server');
         }
-        console.error('Error fetching property:', error);
-        throw new PropertyError('Unexpected error while fetching property', 'UNKNOWN_ERROR');
+        console.error('Error fetching property, using mock data:', error);
+        // Return mock data as fallback
+        return mockProperties.find(p => p.id === id) || null;
       }
     });
   }
