@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X } from "lucide-react"
 import { navItems } from "@/lib/navData"
+import Image from "next/image"
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -52,7 +53,13 @@ export default function Navbar() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img src="/logo.png" alt="Vitrus Logo" className="h-10 w-auto mr-2" />
+              <Image
+                src="/logo.png"
+                alt="Vitrus Logo"
+                width={40}
+                height={40}
+                className="h-10 w-auto mr-2"
+              />
               <span className="text-white font-bold text-xl">VitrusTours</span>
             </div>
 

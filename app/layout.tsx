@@ -6,7 +6,9 @@ import Script from "next/script"
 import { ThemeProvider } from "@/components/theme-provider"
 import FloatingNav from "@/components/floating-nav"
 import PolicyConsent from "@/components/policy-consent"
+import { RealTimeProvider } from "@/components/providers/RealTimeProvider"
 import { SITE_URL } from "@/lib/seo"
+import { Toaster } from "sonner"
 
 // Font setup
 const outfit = Outfit({
@@ -141,9 +143,12 @@ export default function RootLayout({
       </head>
       <body className={`scroll-smooth ${outfit.variable} ${inter.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <FloatingNav />
-          {children}
-          <PolicyConsent />
+          <RealTimeProvider>
+            <FloatingNav />
+            {children}
+            <PolicyConsent />
+            <Toaster />
+          </RealTimeProvider>
         </ThemeProvider>
       </body>
     </html>

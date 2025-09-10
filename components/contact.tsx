@@ -2,13 +2,73 @@
 
 import { useRef, useState } from "react"
 import { motion, AnimatePresence, useInView } from "framer-motion"
-import { Send, Mail, Phone, MapPin, Check } from "lucide-react"
+import { Send, Mail, Phone, MapPin, Check, AlertCircle } from "lucide-react"
 
 export default function Contact() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.2 })
   const [submitted, setSubmitted] = useState(false)
   const [newsletterSubmitted, setNewsletterSubmitted] = useState(false)
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const validateForm = (formData: FormData) => {
+    const errors: {[key: string]: string} = {}
+    
+    const name = formData.get('name') as string
+    const email = formData.get('email') as string
+    const phone = formData.get('phone') as string
+    const message = formData.get('message') as string
+    
+    if (!name || name.trim().length < 2) {
+      errors.name = 'Name must be at least 2 characters long'
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email || !emailRegex.test(email)) {
+      errors.email = 'Please enter a valid email address'
+    }
+    
+    const phoneRegex = /^[+]?[\d\s\-\(\)]{7,15}$/
+    if (!phone || !phoneRegex.test(phone.replace(/\s/g, ''))) {
+      errors.phone = 'Please enter a valid phone number'
+    }
+    
+    if (!message || message.trim().length < 10) {
+      errors.message = 'Message must be at least 10 characters long'
+    }
+    
+    return errors
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setFormErrors({})
+    
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    
+    const errors = validateForm(formData)
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      setIsSubmitting(false)
+      return
+    }
+    
+    try {
+      await fetch('https://formspree.io/f/xyzpkaqn', {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' },
+      })
+      setSubmitted(true)
+    } catch (error) {
+      setFormErrors({ submit: 'Failed to send message. Please try again.' })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <section ref={ref} id="contact" className="py-24 bg-[#F5F5F7] relative overflow-hidden">
@@ -117,7 +177,7 @@ export default function Contact() {
                 action="https://formspree.io/f/xyzpkaqn"
                 method="POST"
                 className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm"
-                onSubmit={() => setSubmitted(true)}
+                onSubmit={handleSubmit}
               >
                 <div className="mb-6">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -128,9 +188,17 @@ export default function Contact() {
                     id="name"
                     name="name"
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                    placeholder="John Doe"
+                    className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200 ${
+                      formErrors.name ? 'border-red-500' : 'border-gray-200'
+                    }`}
+                    placeholder="Enter your full name"
                   />
+                  {formErrors.name && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{formErrors.name}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mb-6">
@@ -143,7 +211,7 @@ export default function Contact() {
                     name="email"
                     required
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                    placeholder="john@gmail.com"
+                    placeholder="john@example.com"
                   />
                 </div>
 
@@ -156,10 +224,17 @@ export default function Contact() {
                     id="phone"
                     name="phone"
                     required
-                    pattern="[+]?\d{7,15}"
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                    placeholder="e.g. +250780217221"
+                    className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200 ${
+                      formErrors.phone ? 'border-red-500' : 'border-gray-200'
+                    }`}
+                    placeholder="Enter your phone number"
                   />
+                  {formErrors.phone && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{formErrors.phone}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mb-6">
@@ -193,17 +268,34 @@ luminotech
                     name="message"
                     required
                     rows={4}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                    placeholder="Tell us about your project..."
+                    className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200 ${
+                      formErrors.message ? 'border-red-500' : 'border-gray-200'
+                    }`}
+                    placeholder="Describe your project requirements and goals"
                   ></textarea>
+                  {formErrors.message && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{formErrors.message}</span>
+                    </div>
+                  )}
                 </div>
 
+                {formErrors.submit && (
+                  <div className="flex items-center gap-2 text-red-600 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{formErrors.submit}</span>
+                  </div>
+                )}
                 <button
                   type="submit"
-                  className="w-full px-6 py-3 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-lg flex items-center justify-center hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300 group"
+                  disabled={isSubmitting}
+                  className={`w-full px-6 py-3 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-lg flex items-center justify-center hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300 group ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                   aria-label="Submit contact form"
                 >
-                  Send Message
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                   <Send className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-200" />
                 </button>
               </form>
@@ -241,7 +333,7 @@ luminotech
                     name="email"
                     required
                     className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#8E8E9D]/50 focus:border-transparent transition-all duration-200"
-                    placeholder="Your email address"
+                    placeholder="Enter your email for updates"
                     aria-label="Email address"
                   />
                   <button
