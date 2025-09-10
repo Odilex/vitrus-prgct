@@ -312,7 +312,7 @@ export const propertyApi = {
   // Create new property
   create: async (property: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<Property>> => {
     // Validate required fields
-    const requiredFields = ['title', 'price', 'location', 'type'];
+    const requiredFields = ['title', 'price', 'address', 'propertyType'];
     const missingFields = requiredFields.filter(field => !property[field as keyof typeof property]);
     
     if (missingFields.length > 0) {
