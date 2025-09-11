@@ -51,6 +51,9 @@ export interface PropertyResponse {
 // API configuration
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://vitrus-backend.onrender.com/api/v1' : 'http://localhost:5000/api/v1');
 
+// Import auth store for authentication
+import { useAuthStore } from './auth';
+
 // Property API service
 export class PropertyService {
   static async getAllProperties(filters?: PropertyFilters): Promise<PropertyResponse> {
@@ -101,11 +104,14 @@ export class PropertyService {
 
   static async createProperty(property: Omit<Property, 'id' | 'createdAt' | 'updatedAt'>): Promise<Property | null> {
     try {
+      const authStore = useAuthStore.getState();
+      const authHeaders = authStore.getAuthHeaders();
+      
       const response = await fetch(`${API_BASE_URL}/properties`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          ...authHeaders,
         },
         body: JSON.stringify(property),
       });
@@ -123,11 +129,14 @@ export class PropertyService {
 
   static async updateProperty(id: string, updates: Partial<Property>): Promise<Property | null> {
     try {
+      const authStore = useAuthStore.getState();
+      const authHeaders = authStore.getAuthHeaders();
+      
       const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          ...authHeaders,
         },
         body: JSON.stringify(updates),
       });
@@ -145,10 +154,13 @@ export class PropertyService {
 
   static async deleteProperty(id: string): Promise<boolean> {
     try {
+      const authStore = useAuthStore.getState();
+      const authHeaders = authStore.getAuthHeaders();
+      
       const response = await fetch(`${API_BASE_URL}/properties/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          ...authHeaders,
         },
       });
       

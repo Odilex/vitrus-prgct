@@ -94,74 +94,24 @@ export default function Portfolio() {
           </p>
         </motion.div>
 
-        {/* Latest Properties Showcase */}
-        {loading ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="text-center py-16"
+        {/* Latest Properties Showcase - Temporarily disabled */}
+        
+        {/* Discover More Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+          className="text-center"
+        >
+          <button
+            onClick={handleDiscoverClick}
+            className="px-8 py-4 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-full hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300 flex items-center mx-auto group"
           >
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8E8E9D] mx-auto mb-4"></div>
-            <p className="text-white/70 text-lg">Loading latest properties...</p>
-          </motion.div>
-        ) : latestProperties.length > 0 ? (
-          <>
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12"
-            >
-              {latestProperties.map((property, index) => (
-                <motion.div
-                  key={property.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                  transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-                  className="group cursor-pointer"
-                  onClick={() => router.push(`/property/${property.id}`)}
-                >
-                  <PropertyCard property={property} />
-                </motion.div>
-              ))}
-            </motion.div>
-            
-            {/* Discover More Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, delay: 0.8 }}
-              className="text-center"
-            >
-              <button
-                onClick={handleDiscoverClick}
-                className="px-8 py-4 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-full hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300 flex items-center mx-auto group"
-              >
-                <Eye className="w-5 h-5 mr-2" />
-                Discover More Properties
-                <ArrowRight className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-              </button>
-            </motion.div>
-          </>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="text-center py-16 bg-gradient-to-br from-[#0A0E2E] to-[#151A3A] border border-[#3A3A5A] rounded-2xl backdrop-blur-sm"
-          >
-            <p className="text-white/70 text-lg mb-6">No properties available at the moment.</p>
-            <button
-              onClick={handleDiscoverClick}
-              className="px-8 py-3 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white font-medium rounded-full hover:shadow-lg hover:shadow-[#8E8E9D]/20 transition-all duration-300 flex items-center mx-auto group"
-            >
-              <Eye className="w-5 h-5 mr-2" />
-              Explore Properties
-              <ArrowRight className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-            </button>
-          </motion.div>
-        )}
+            <Eye className="w-5 h-5 mr-2" />
+            Discover More Properties
+            <ArrowRight className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+          </button>
+        </motion.div>
 
 
       </div>

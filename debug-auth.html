@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Authentication Debug Tool</h1>
+    
+    <div class="section">
+        <h2>1. Check Local Storage</h2>
+        <button onclick="checkLocalStorage()">Check Auth Storage</button>
+        <div id="storage-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>2. Test Login</h2>
+        <input type="email" id="email" placeholder="Email" value="test@vitrus.com">
+        <input type="password" id="password" placeholder="Password" value="TestPass123!">
+        <button onclick="testLogin()">Test Login</button>
+        <div id="login-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>3. Test Authenticated Request</h2>
+        <button onclick="testAuthenticatedRequest()">Test Property Creation</button>
+        <div id="auth-request-result"></div>
+    </div>
+    
+    <div class="section">
+        <h2>4. Clear Storage</h2>
+        <button onclick="clearStorage()">Clear All Auth Data</button>
+        <div id="clear-result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000/api/v1';
+        
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : '';
+            element.innerHTML += `<div class="${className}">${message}</div>`;
+        }
+        
+        function clearLog(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+        
+        function checkLocalStorage() {
+            clearLog('storage-result');
+            
+            // Check for vitrus auth storage
+            const authStorage = localStorage.getItem('vitrus-auth-storage');
+            
+            if (authStorage) {
+                try {
+                    const parsed = JSON.parse(authStorage);
+                    log('storage-result', '✅ Found vitrus-auth-storage', 'success');
+                    log('storage-result', `<pre>${JSON.stringify(parsed, null, 2)}</pre>`);
+                    
+                    if (parsed.state?.tokens?.access_token) {
+                        log('storage-result', '✅ Access token found', 'success');
+                        
+                        // Check if token is expired
+                        try {
+                            const payload = JSON.parse(atob(parsed.state.tokens.access_token.split('.')[1]));
+                            const currentTime = Date.now() / 1000;
+                            const isExpired = payload.exp < currentTime;
+                            
+                            if (isExpired) {
+                                log('storage-result', '⚠️ Token is expired', 'warning');
+                            } else {
+                                log('storage-result', '✅ Token is valid', 'success');
+                            }
+                        } catch (e) {
+                            log('storage-result', '❌ Cannot decode token', 'error');
+                        }
+                    } else {
+                        log('storage-result', '❌ No access token found', 'error');
+                    }
+                    
+                    if (parsed.state?.user) {
+                        log('storage-result', '✅ User data found', 'success');
+                    } else {
+                        log('storage-result', '❌ No user data found', 'error');
+                    }
+                } catch (e) {
+                    log('storage-result', '❌ Cannot parse auth storage: ' + e.message, 'error');
+                }
+            } else {
+                log('storage-result', '❌ No vitrus-auth-storage found', 'error');
+                log('storage-result', 'Available localStorage keys: ' + Object.keys(localStorage).join(', '));
+            }
+        }
+        
+        async function testLogin() {
+            clearLog('login-result');
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                log('login-result', '❌ Please enter email and password', 'error');
+                return;
+            }
+            
+            try {
+                log('login-result', '🔄 Attempting login...');
+                
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log('login-result', '✅ Login successful', 'success');
+                    log('login-result', `<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                    
+                    // Manually store in localStorage to test
+                    const authData = {
+                        state: {
+                            user: data.user,
+                            tokens: data.tokens,
+                            isAuthenticated: true
+                        }
+                    };
+                    localStorage.setItem('vitrus-auth-storage', JSON.stringify(authData));
+                    log('login-result', '✅ Stored auth data in localStorage', 'success');
+                } else {
+                    log('login-result', `❌ Login failed: ${data.message}`, 'error');
+                    log('login-result', `<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                }
+            } catch (error) {
+                log('login-result', `❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAuthenticatedRequest() {
+            clearLog('auth-request-result');
+            
+            const authStorage = localStorage.getItem('vitrus-auth-storage');
+            
+            if (!authStorage) {
+                log('auth-request-result', '❌ No auth storage found. Please login first.', 'error');
+                return;
+            }
+            
+            try {
+                const parsed = JSON.parse(authStorage);
+                const accessToken = parsed.state?.tokens?.access_token;
+                
+                if (!accessToken) {
+                    log('auth-request-result', '❌ No access token found', 'error');
+                    return;
+                }
+                
+                log('auth-request-result', '🔄 Testing authenticated request...');
+                
+                const testProperty = {
+                    title: 'Debug Test Property',
+                    description: 'This is a test property created by the debug tool',
+                    propertyType: 'house',
+                    price: 250000,
+                    address: '123 Debug Street',
+                    city: 'Test City',
+                    country: 'Test Country',
+                    bedrooms: 3,
+                    bathrooms: 2,
+                    squareFootage: 1500
+                };
+                
+                const response = await fetch(`${API_BASE_URL}/properties`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify(testProperty)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log('auth-request-result', '✅ Property created successfully!', 'success');
+                    log('auth-request-result', `<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                } else {
+                    log('auth-request-result', `❌ Request failed (${response.status}): ${data.message}`, 'error');
+                    log('auth-request-result', `<pre>${JSON.stringify(data, null, 2)}</pre>`);
+                }
+            } catch (error) {
+                log('auth-request-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearStorage() {
+            clearLog('clear-result');
+            localStorage.removeItem('vitrus-auth-storage');
+            log('clear-result', '✅ Cleared auth storage', 'success');
+        }
+        
+        // Auto-check storage on page load
+        window.onload = function() {
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html>

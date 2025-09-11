@@ -1,4 +1,6 @@
 // API Service for database operations
+import { useAuthStore } from './auth';
+
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://vitrus-backend.onrender.com/api/v1' 
   : 'http://localhost:5000/api/v1';
@@ -166,10 +168,15 @@ async function apiRequest<T>(
         );
       }
 
+      // Get authentication headers from auth store
+      const authStore = useAuthStore.getState();
+      const authHeaders = authStore.getAuthHeaders();
+
       const url = `${API_BASE_URL}${endpoint}`;
       const response = await fetchWithTimeout(url, {
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
           ...fetchOptions.headers,
         },
         ...fetchOptions,
