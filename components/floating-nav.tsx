@@ -42,7 +42,7 @@ export default function FloatingNav() {
 
   const navItems = [
     { id: "hero", label: "Home", icon: <Home className="w-4 h-4" /> },
-    {/* id: "portfolio", label: "Portfolio", icon: <ImageIcon className="w-4 h-4" /> */ },
+    { id: "portfolio", label: "Portfolio", icon: <ImageIcon className="w-4 h-4" /> },
     { id: "how-it-works", label: "Process", icon: <Info className="w-4 h-4" /> },
     { id: "about", label: "About", icon: <Users className="w-4 h-4" /> },
     { id: "services", label: "Services", icon: <Layers className="w-4 h-4" /> },
@@ -87,11 +87,7 @@ export default function FloatingNav() {
                     </a>
                   ))}
                   
-                  {/* Real-time features */}
-                  <div className="flex items-center space-x-2 ml-2">
-                    <RealTimeStatusCompact className="text-white" />
-                    <RealTimeNotifications className="text-white" />
-                  </div>
+
                   
                   <a
                     href="#contact"
