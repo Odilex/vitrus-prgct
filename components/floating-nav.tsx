@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Home, Info, ImageIcon, MessageSquare, Menu, X, Users, Layers } from "lucide-react"
-import { RealTimeStatusCompact } from "@/components/ui/real-time-status"
-import RealTimeNotifications from "@/components/ui/real-time-notifications"
 
 export default function FloatingNav() {
   const [isVisible, setIsVisible] = useState(false)
@@ -86,13 +84,6 @@ export default function FloatingNav() {
                       <span className="ml-1.5">{item.label}</span>
                     </a>
                   ))}
-                  
-                  {/* Real-time features */}
-                  <div className="flex items-center space-x-2 ml-2">
-                    <RealTimeStatusCompact className="text-white" />
-                    <RealTimeNotifications className="text-white" />
-                  </div>
-                  
                   <a
                     href="#contact"
                     className="ml-2 px-5 py-2 bg-white text-[#000423] rounded-full text-sm font-medium hover:bg-opacity-90 transition-all duration-300 hover:shadow-md hover:shadow-white/10"
