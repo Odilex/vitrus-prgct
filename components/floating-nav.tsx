@@ -40,7 +40,7 @@ export default function FloatingNav() {
 
   const navItems = [
     { id: "hero", label: "Home", icon: <Home className="w-4 h-4" /> },
-    {/* id: "portfolio", label: "Portfolio", icon: <ImageIcon className="w-4 h-4" /> */ },
+    { id: "portfolio", label: "Portfolio", icon: <ImageIcon className="w-4 h-4" /> },
     { id: "how-it-works", label: "Process", icon: <Info className="w-4 h-4" /> },
     { id: "about", label: "About", icon: <Users className="w-4 h-4" /> },
     { id: "services", label: "Services", icon: <Layers className="w-4 h-4" /> },
@@ -84,6 +84,12 @@ export default function FloatingNav() {
                       <span className="ml-1.5">{item.label}</span>
                     </a>
                   ))}
+<<<<<<< HEAD
+=======
+                  
+
+                  
+>>>>>>> dfd52c12788053c44d96e69d8004fb8ee2e985ba
                   <a
                     href="#contact"
                     className="ml-2 px-5 py-2 bg-white text-[#000423] rounded-full text-sm font-medium hover:bg-opacity-90 transition-all duration-300 hover:shadow-md hover:shadow-white/10"

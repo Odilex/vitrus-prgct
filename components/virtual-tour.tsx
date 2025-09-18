@@ -72,8 +72,11 @@ function getEmbedUrl(url: string, tourType: TourType): string {
       break;
       
     case 'matterport':
-      // For Matterport, we'll use the full embed structure in the component
-      return url;
+      // For Matterport, add mobile-friendly parameters to prevent redirect
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}nt=0&brand=0`;
+      // nt=0: Prevents opening in new tab on mobile
+      // brand=0: Removes Matterport branding
       
     case 'iframe':
       // Generic iframe URL
@@ -731,8 +734,7 @@ export default function VirtualTour({
                   title={`Virtual Tour of ${propertyTitle}`}
                   style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0}}
                   frameBorder="0"
-                  allowFullScreen
-                  allow="autoplay; fullscreen; web-share; xr-spatial-tracking"
+                  allow="autoplay; web-share; xr-spatial-tracking"
                   onLoad={handleIframeLoad}
                   onError={handleIframeError}
                   loading="lazy"
@@ -745,7 +747,6 @@ export default function VirtualTour({
                 src={`${embedUrl}${embedUrl.includes('?') ? '&' : '?'}autoplay=1${isMuted ? '&mute=1' : ''}`}
                 title={`Virtual Tour of ${propertyTitle}`}
                 className="w-full h-full border-0"
-                allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 onLoad={handleIframeLoad}
                 onError={handleIframeError}
