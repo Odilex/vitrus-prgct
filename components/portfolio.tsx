@@ -1,11 +1,8 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef } from "react"
 import { motion, useInView } from "framer-motion"
 import { ArrowRight, Eye } from "lucide-react"
-import PropertyCard from "@/components/property-card"
-import { Property } from "@/lib/types/property"
-import propertyService from "@/lib/api/property"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -13,29 +10,6 @@ export default function Portfolio() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, amount: 0.2 })
   const router = useRouter()
-  const [latestProperties, setLatestProperties] = useState<Property[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchLatestProperties = async () => {
-      try {
-        setLoading(true)
-        const properties = await propertyService.getAll()
-        // Get the 3 most recent properties
-        const sortedProperties = properties.sort((a, b) => 
-          new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-        )
-        setLatestProperties(sortedProperties.slice(0, 3))
-      } catch (error) {
-        console.error('Error fetching properties:', error)
-        setLatestProperties([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchLatestProperties()
-  }, [])
 
   const handleDiscoverClick = () => {
     // For now, show alert for coming soon discovery page
@@ -154,7 +128,7 @@ export default function Portfolio() {
                  <iframe 
                    width="100%" 
                    height="100%" 
-                   src="https://my.matterport.com/show/?m=JtMz7gcTyHJ&brand=0&help=0&hr=0&sb=0&nt=0" 
+                   src="https://my.matterport.com/show/?m=JtMz7gcTyHJ&brand=0" 
                    frameBorder="0" 
                    allowFullScreen 
                    allow="autoplay; fullscreen; web-share; xr-spatial-tracking"
@@ -196,7 +170,7 @@ export default function Portfolio() {
                   <iframe 
                      width="100%" 
                      height="100%" 
-                     src="https://my.matterport.com/show/?m=rTKvTdm7Hh3&brand=0&help=0&hr=0&sb=0&nt=0" 
+                     src="https://my.matterport.com/show/?m=rTKvTdm7Hh3&brand=0" 
                      frameBorder="0" 
                      allowFullScreen 
                      allow="autoplay; fullscreen; web-share; xr-spatial-tracking"

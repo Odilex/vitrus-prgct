@@ -90,6 +90,7 @@ export default function green_nest_apartment() {
             height="100%"
             src="https://my.matterport.com/show/?m=asUPJZMybAg&brand=0&qs=1&help=0&hr=0&sb=0&nt=0&mls=1"
             frameBorder="0"
+            allowFullScreen
             allow="autoplay; web-share; xr-spatial-tracking"
             className="w-full h-full"
           />

@@ -88,8 +88,9 @@ export default function LuxurySpaceTour() {
             id="tour-iframe"
             width="100%"
             height="100%"
-            src="https://my.matterport.com/show/?m=asUPJZMybAg&brand=0&qs=1&help=0&hr=0&sb=0&nt=0&mls=1"
+            src="https://my.matterport.com/show/?m=rTKvTdm7Hh3&brand=0&qs=1&help=0&hr=0&sb=0&nt=0&mls=1"
             frameBorder="0"
+            allowFullScreen
             allow="autoplay; web-share; xr-spatial-tracking"
             className="w-full h-full"
           />

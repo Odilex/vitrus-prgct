@@ -699,7 +699,7 @@ export default function ToursManagement() {
               }}>
                 Cancel
               </Button>
-              <Button onClick={handleAssignStaff} disabled={!selectedStaff}>
+              <Button onClick={handleAssignTour} disabled={!selectedStaff}>
                 Assign
               </Button>
             </DialogFooter>
