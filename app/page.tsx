@@ -13,8 +13,8 @@ export default function Home() {
     <main className="min-h-screen bg-[#000423] text-white overflow-hidden">
       <Hero />
       <Portfolio /> 
-      <HowItWorks />
       <AboutUs />
+      <HowItWorks />
       <Services />
       <Testimonials />
       <Contact />

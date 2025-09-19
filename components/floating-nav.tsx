@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Home, Building, Users, Phone } from 'lucide-react'
+import { Home, Building, Users, Phone, Menu, X } from 'lucide-react'
 
 interface NavItem {
   id: string
@@ -13,22 +13,22 @@ const navItems: NavItem[] = [
   {
     id: 'hero',
     label: 'Home',
-    icon: <Home className="w-5 h-5" />
+    icon: <Home className="w-4 h-4 sm:w-5 sm:h-5" />
   },
   {
-    id: 'properties',
-    label: 'Properties',
-    icon: <Building className="w-5 h-5" />
+    id: 'portfolio',
+    label: 'Portfolio',
+    icon: <Building className="w-4 h-4 sm:w-5 sm:h-5" />
   },
   {
     id: 'about',
     label: 'About',
-    icon: <Users className="w-5 h-5" />
+    icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />
   },
   {
     id: 'contact',
     label: 'Contact',
-    icon: <Phone className="w-5 h-5" />
+    icon: <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
   }
 ]
 
@@ -40,53 +40,88 @@ export default function FloatingNav() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY
-      setIsVisible(scrollPosition > 100)
+      setIsVisible(scrollPosition > 80)
 
-      // Update active section based on scroll position
-      const sections = navItems.map(item => item.id)
-      const currentSection = sections.find(section => {
+      // Update active section based on scroll position with better detection
+      const sections = ['hero', 'portfolio', 'about', 'how-it-works', 'services', 'testimonials', 'contact']
+      const aboutRelatedSections = ['about', 'how-it-works', 'services', 'testimonials']
+      let currentSection = 'hero' // default
+      
+      for (const section of sections) {
         const element = document.getElementById(section)
         if (element) {
           const rect = element.getBoundingClientRect()
-          return rect.top <= 100 && rect.bottom >= 100
+          const offset = window.innerHeight * 0.3 // 30% of viewport height
+          if (rect.top <= offset && rect.bottom >= offset) {
+            // Map process, services, testimonials to about for navigation highlighting
+            if (aboutRelatedSections.includes(section)) {
+              currentSection = 'about'
+            } else {
+              currentSection = section
+            }
+          }
         }
-        return false
-      })
+      }
       
-      if (currentSection) {
-        setActiveSection(currentSection)
+      setActiveSection(currentSection)
+    }
+
+    // Close mobile menu on scroll
+    const handleScrollClose = () => {
+      if (isMenuOpen) {
+        setIsMenuOpen(false)
       }
     }
 
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    // Close mobile menu on resize
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && isMenuOpen) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('scroll', handleScrollClose, { passive: true })
+    window.addEventListener('resize', handleResize)
+    
+    // Initial call
+    handleScroll()
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('scroll', handleScrollClose)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [isMenuOpen])
 
   return (
     <>
       {/* Desktop floating nav */}
-      <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}`}>
-        <nav className="bg-black/80 backdrop-blur-md rounded-full px-6 py-3 shadow-lg border border-white/10">
+      <div className={`fixed top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ease-out hidden md:block ${
+        isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-8 scale-95 pointer-events-none'
+      }`}>
+        <nav className="bg-gradient-to-r from-white/10 via-white/5 to-white/10 backdrop-blur-xl rounded-full px-3 sm:px-6 py-2 sm:py-3 shadow-2xl border border-white/20 hover:border-white/30 transition-all duration-300 hover:from-white/15 hover:via-white/10 hover:to-white/15">
           <div className="flex items-center space-x-1">
             {navItems.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className={`flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                className={`group flex items-center px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 hover:scale-105 ${
                   activeSection === item.id
-                    ? 'bg-white text-black'
-                    : 'text-white hover:bg-white/10'
+                    ? 'bg-white text-black shadow-lg'
+                    : 'text-white hover:bg-white/15 hover:text-white'
                 }`}
               >
-                {item.icon}
-                <span className="ml-2 hidden sm:inline">{item.label}</span>
+                <span className="transition-transform duration-200 group-hover:scale-110">{item.icon}</span>
+                <span className="ml-2 hidden lg:inline transition-all duration-200">{item.label}</span>
               </a>
             ))}
             <a
               href="#contact"
-              className="ml-2 px-6 py-2 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white rounded-full text-sm font-medium hover:shadow-lg transition-all duration-200"
+              className="ml-2 px-4 sm:px-6 py-2 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] hover:from-[#9E9EAD] hover:to-[#C5C5D3] text-white rounded-full text-xs sm:text-sm font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 transform"
             >
-              Book a Demo
+              <span className="hidden sm:inline">Book a Demo</span>
+              <span className="sm:hidden">Demo</span>
             </a>
           </div>
         </nav>
@@ -95,40 +130,50 @@ export default function FloatingNav() {
       {/* Mobile menu button */}
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className={`fixed top-6 right-6 z-50 lg:hidden p-3 bg-black/80 backdrop-blur-md rounded-full border border-white/10 transition-all duration-300 ${
-          isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed top-4 sm:top-6 right-4 sm:right-6 z-50 md:hidden p-3 sm:p-4 bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-xl rounded-full border border-white/20 hover:border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 active:scale-95 hover:from-white/15 hover:via-white/10 hover:to-white/15 ${
+          isVisible ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 -translate-y-4 rotate-180 pointer-events-none'
         }`}
+        aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
       >
-        <div className="w-6 h-6 flex flex-col justify-center items-center">
-          <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-1' : ''}`} />
-          <span className={`block w-5 h-0.5 bg-white mt-1 transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`} />
-          <span className={`block w-5 h-0.5 bg-white mt-1 transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1' : ''}`} />
+        <div className="w-5 h-5 sm:w-6 sm:h-6 flex flex-col justify-center items-center relative">
+          {isMenuOpen ? (
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-white transition-all duration-300 rotate-0" />
+          ) : (
+            <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-white transition-all duration-300" />
+          )}
         </div>
       </button>
 
       {/* Mobile menu */}
-      <div className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
-        <div className={`absolute top-20 right-6 bg-black/90 backdrop-blur-md rounded-2xl p-6 border border-white/10 min-w-[200px] transition-all duration-300 ${isMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'}`}>
-          <div className="flex flex-col space-y-2">
-            {navItems.map((item) => (
+      <div className={`fixed inset-0 z-40 md:hidden transition-all duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <div 
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300" 
+          onClick={() => setIsMenuOpen(false)} 
+        />
+        <div className={`absolute top-16 sm:top-20 right-4 sm:right-6 bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-2xl rounded-3xl p-4 sm:p-6 border border-white/20 min-w-[280px] sm:min-w-[320px] shadow-2xl transition-all duration-500 transform ${
+          isMenuOpen ? 'translate-y-0 opacity-100 scale-100 rotate-0' : '-translate-y-8 opacity-0 scale-95 rotate-3'
+        }`}>
+          <div className="flex flex-col space-y-1">
+            {navItems.map((item, index) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                className={`text-lg font-medium flex items-center px-4 py-3 rounded-xl transition-all duration-200 ${
+                className={`group text-base sm:text-lg font-medium flex items-center px-4 sm:px-5 py-3 sm:py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
                   activeSection === item.id
-                    ? 'bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white'
-                    : 'text-white hover:bg-white/10'
+                    ? 'bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white shadow-lg'
+                    : 'text-white hover:bg-white/15 hover:text-white'
                 }`}
                 onClick={() => setIsMenuOpen(false)}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
-                {item.icon}
-                <span className="ml-3">{item.label}</span>
+                <span className="transition-transform duration-200 group-hover:scale-110">{item.icon}</span>
+                <span className="ml-3 sm:ml-4 transition-all duration-200">{item.label}</span>
               </a>
             ))}
+            <div className="h-px bg-white/10 my-2 sm:my-3" />
             <a
               href="#contact"
-              className="mt-4 px-6 py-3 bg-white text-black rounded-xl font-medium hover:shadow-lg transition-all duration-200 text-center"
+              className="px-5 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-white to-gray-100 hover:from-gray-100 hover:to-white text-black rounded-2xl font-semibold hover:shadow-xl transition-all duration-300 text-center hover:scale-[1.02] active:scale-[0.98] transform"
               onClick={() => setIsMenuOpen(false)}
             >
               Book a Demo

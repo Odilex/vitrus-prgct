@@ -4,20 +4,20 @@ export const navItems = [
     href: "#hero",
   },
   {
-    name: "Process",
-    href: "#how-it-works",
+    name: "Portfolio",
+    href: "#portfolio",
   },
   {
     name: "About",
     href: "#about",
   },
   {
-    name: "Services",
-    href: "#services",
+    name: "Process",
+    href: "#how-it-works",
   },
   {
-    name: "Portfolio",
-    href: "#portfolio",
+    name: "Services",
+    href: "#services",
   },
   {
     name: "Testimonials",
