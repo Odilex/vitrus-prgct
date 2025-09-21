@@ -88,20 +88,63 @@ export default function LuxurySpaceTour() {
             id="tour-iframe"
             width="100%"
             height="100%"
-            src="https://my.matterport.com/show/?m=rTKvTdm7Hh3&brand=0&qs=1&help=0&hr=0&sb=0&nt=0&mls=1"
+            src="https://my.matterport.com/show/?m=rTKvTdm7Hh3&brand=0&qs=1&help=0&hr=0&sb=0&nt=0&mls=1&mt=0&search=0&kb=0&dh=0&ts=0&pin=0&gt=0&st=0&ui=0&fs=0&vr=0&guides=0&title=0&lang=en"
             frameBorder="0"
             allowFullScreen
-            allow="autoplay; web-share; xr-spatial-tracking"
+            allow="autoplay; web-share; xr-spatial-tracking; gyroscope; accelerometer"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock"
+            referrerPolicy="strict-origin-when-cross-origin"
+            loading="lazy"
             className="w-full h-full"
           />
           {/* Custom Fullscreen Button - Above Alert */}
             <button
             onClick={toggleFullscreen}
-            className="absolute bottom-16 right-4 z-20 p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-black/70 transition-all duration-300 shadow-lg"
+            className="absolute bottom-16 right-6 z-50 p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-black/70 transition-all duration-300 shadow-lg"
             title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
           >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
+            {/* Hide Matterport's native fullscreen button */}
+            <style jsx global>{`
+              /* Hide all Matterport UI controls */
+              iframe#tour-iframe {
+                position: relative;
+              }
+              
+              /* Target Matterport's internal elements */
+              iframe[src*="matterport.com"] {
+                --matterport-ui-display: none;
+              }
+              
+              /* Hide various Matterport control selectors */
+              .matterport-viewer [data-testid="fullscreen-button"],
+              .matterport-viewer .fullscreen-button,
+              .matterport-viewer .mp-fullscreen-button,
+              .matterport-viewer .controls-fullscreen,
+              .matterport-viewer .ui-fullscreen,
+              .matterport-viewer .matterport-ui,
+              .matterport-viewer .ui-controls,
+              .matterport-viewer .control-bar,
+              .matterport-viewer .toolbar {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+              }
+              
+              /* Block interaction area where Matterport controls appear */
+              .tour-viewer::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 100px;
+                height: 100px;
+                background: transparent;
+                z-index: 45;
+                pointer-events: none;
+              }
+            `}</style>
             {/* Zoom Alert - Yellow full width */}
             <div className="absolute bottom-3 left-0 right-0 z-10 bg-yellow-500/100 text-black text-center px-4" style={{height: '47px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
               <p className="font-medium">If objects seem too close, please zoom out</p>
