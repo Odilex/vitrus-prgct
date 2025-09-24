@@ -16,12 +16,8 @@ const nextConfig = {
         source: '/tour/:path*',
         headers: [
           {
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL',
-          },
-          {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors *;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors *",
           },
         ],
       },

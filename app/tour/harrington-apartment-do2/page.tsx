@@ -39,7 +39,16 @@ export default function LuxurySpaceTour() {
   }
 
   const requestEmbedCode = () => {
-    window.location.href = '/contact'
+    const embedCode = `<iframe src="${window.location.origin}/embed/tour/harrington-apartment-do2" width="100%" height="600" frameborder="0" allowfullscreen title="Harrington Apartment DO2 Virtual Tour"></iframe>`
+    
+    navigator.clipboard.writeText(embedCode).then(() => {
+      alert('Embed code copied to clipboard!')
+    }).catch(err => {
+      console.error('Failed to copy embed code: ', err)
+      // Fallback: show the embed code in a prompt
+      prompt('Copy this embed code:', embedCode)
+    })
+    
     setShowShareDropdown(false)
   }
 

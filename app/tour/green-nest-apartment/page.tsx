@@ -39,7 +39,16 @@ export default function green_nest_apartment() {
   }
 
   const requestEmbedCode = () => {
-    window.location.href = '/contact'
+    const embedCode = `<iframe src="${window.location.origin}/embed/tour/green-nest-apartment" width="100%" height="600" frameborder="0" allowfullscreen title="Green Nest Apartment Virtual Tour"></iframe>`
+    
+    navigator.clipboard.writeText(embedCode).then(() => {
+      alert('Embed code copied to clipboard!')
+    }).catch(err => {
+      console.error('Failed to copy embed code: ', err)
+      // Fallback: show the embed code in a prompt
+      prompt('Copy this embed code:', embedCode)
+    })
+    
     setShowShareDropdown(false)
   }
 
