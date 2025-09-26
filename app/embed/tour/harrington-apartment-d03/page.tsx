@@ -60,7 +60,7 @@ export default function EmbedTour() {
           id="tour-iframe"
           width="100%"
           height="100%"
-          src="https://my.matterport.com/show/?m=rTKvTdm7Hh3&brand=0&qs=1&help=0&hr=0&sb=0&nt=0&mls=1&mt=0&search=0&kb=0&dh=0&ts=0&pin=0&gt=0&st=0&ui=0&fs=0&vr=0&guides=0&title=0&lang=en"
+          src="https://my.matterport.com/show/?m=JtMz7gcTyHJ&brand=0&qs=1&help=0&hr=0&sb=0&nt=0&mls=1&mt=0&search=0&kb=0&dh=0&ts=0&pin=0&gt=0&st=0&ui=0&fs=0&vr=0&guides=0&title=0&lang=en"
           frameBorder="0"
           allowFullScreen
           allow="autoplay; web-share; xr-spatial-tracking; gyroscope; accelerometer"
