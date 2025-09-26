@@ -12,18 +12,28 @@ const nextConfig = {
   async headers() {
     return [
       {
-        // Allow iframe embedding for tour pages
+        // Allow iframe embedding for tour and embed pages
         source: '/tour/:path*',
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors *",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self' https://my.matterport.com https://*.matterport.com; frame-ancestors 'self' http: https: file: data:",
+          },
+        ],
+      },
+      {
+        // Allow iframe embedding for embed pages
+        source: '/embed/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-src 'self' https://my.matterport.com https://*.matterport.com; frame-ancestors 'self' http: https: file: data:",
           },
         ],
       },
       {
         // Maintain security for all other pages
-        source: '/((?!tour).*)',
+        source: '/((?!tour|embed).*)',
         headers: [
           {
             key: 'X-Frame-Options',
