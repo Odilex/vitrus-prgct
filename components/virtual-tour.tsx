@@ -51,7 +51,21 @@ function detectTourType(url: string): TourType {
   return 'unknown';
 }
 
+// Mobile detection utility
+function isMobileDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  const userAgent = navigator.userAgent.toLowerCase();
+  const mobileKeywords = ['android', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone', 'mobile'];
+  
+  return mobileKeywords.some(keyword => userAgent.includes(keyword)) || 
+         /Mobi|Android/i.test(navigator.userAgent) ||
+         (window.innerWidth <= 768);
+}
+
 function getEmbedUrl(url: string, tourType: TourType): string {
+  const isMobile = isMobileDevice();
+  
   switch (tourType) {
     case 'youtube':
       // Convert YouTube URL to embed format
@@ -72,11 +86,28 @@ function getEmbedUrl(url: string, tourType: TourType): string {
       break;
       
     case 'matterport':
-      // For Matterport, add mobile-friendly parameters to prevent redirect
+      // Enhanced mobile-friendly parameters for Matterport
       const separator = url.includes('?') ? '&' : '?';
-      return `${url}${separator}nt=0&brand=0`;
+      const mobileParams = isMobile 
+        ? 'nt=0&brand=0&help=0&hr=0&qs=1&sb=0&mls=1&mt=0&search=0&kb=0&dh=0&ts=0&pin=0&gt=0&st=0'
+        : 'nt=0&brand=0&help=0&hr=0&qs=1&sb=0&mls=1';
+      
+      return `${url}${separator}${mobileParams}`;
       // nt=0: Prevents opening in new tab on mobile
       // brand=0: Removes Matterport branding
+      // help=0: Removes help button
+      // hr=0: Removes home button
+      // qs=1: Quick start mode
+      // sb=0: Removes sidebar
+      // mls=1: Enables MLS mode
+      // mt=0: Disables mobile redirect (mobile only)
+      // search=0: Disables search (mobile only)
+      // kb=0: Disables keyboard shortcuts (mobile only)
+      // dh=0: Disables dollhouse view (mobile only)
+      // ts=0: Disables tag system (mobile only)
+      // pin=0: Disables pins (mobile only)
+      // gt=0: Disables guided tour (mobile only)
+      // st=0: Disables share tools (mobile only)
       
     case 'iframe':
       // Generic iframe URL
@@ -724,7 +755,7 @@ export default function VirtualTour({
           ) : (
             // Actual Tour Iframe
             tourType === 'matterport' ? (
-              // Matterport with responsive wrapper
+              // Matterport with responsive wrapper and mobile-specific handling
               <div style={{position: 'relative', width: '100%', paddingBottom: '56.25%'}}>
                 <iframe
                   ref={iframeRef}
@@ -734,20 +765,24 @@ export default function VirtualTour({
                   title={`Virtual Tour of ${propertyTitle}`}
                   style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0}}
                   frameBorder="0"
-                  allow="autoplay; web-share; xr-spatial-tracking"
+                  allow="autoplay; web-share; xr-spatial-tracking; gyroscope; accelerometer"
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  loading="lazy"
                   onLoad={handleIframeLoad}
                   onError={handleIframeError}
-                  loading="lazy"
                 />
               </div>
             ) : (
-              // Other tour types
+              // Other tour types with mobile optimization
               <iframe
                 ref={iframeRef}
                 src={`${embedUrl}${embedUrl.includes('?') ? '&' : '?'}autoplay=1${isMuted ? '&mute=1' : ''}`}
                 title={`Virtual Tour of ${propertyTitle}`}
                 className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; xr-spatial-tracking"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock"
+                referrerPolicy="strict-origin-when-cross-origin"
                 onLoad={handleIframeLoad}
                 onError={handleIframeError}
                 loading="lazy"

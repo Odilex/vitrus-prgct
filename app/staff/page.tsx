@@ -79,7 +79,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 // API service for dashboard data
 class DashboardService {
-  private static API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+  private static API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
   static async getDashboardData(): Promise<DashboardData> {
     try {
@@ -156,7 +156,7 @@ interface PendingTask {
 
 // Additional API services
 class PropertyManagementService {
-  private static API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+  private static API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
 
   static async getRecentProperties(): Promise<RecentProperty[]> {
     try {

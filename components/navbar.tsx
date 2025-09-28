@@ -20,14 +20,20 @@ export default function Navbar() {
       }
 
       // Determine active section
-      const sections = ["hero", "about", "services", "portfolio", "how-it-works", "testimonials", "contact"]
+      const sections = ["hero", "portfolio", "about", "how-it-works", "services", "testimonials", "contact"]
+      const aboutRelatedSections = ["about", "how-it-works", "services", "testimonials"]
 
       for (const section of sections) {
         const element = document.getElementById(section)
         if (element) {
           const rect = element.getBoundingClientRect()
           if (rect.top <= 100 && rect.bottom >= 100) {
-            setActiveSection(section)
+            // Map process, services, testimonials to about for navigation highlighting
+            if (aboutRelatedSections.includes(section)) {
+              setActiveSection("about")
+            } else {
+              setActiveSection(section)
+            }
             break
           }
         }
