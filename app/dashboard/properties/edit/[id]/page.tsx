@@ -282,7 +282,7 @@ export default function EditPropertyPage() {
                 </Button>
                 <Button
                   onClick={() => window.location.reload()}
-                  className="bg-cyan-600 hover:bg-cyan-700"
+                  className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
                 >
                   Retry
                 </Button>
@@ -316,7 +316,7 @@ export default function EditPropertyPage() {
           <p className="text-slate-300 mb-6">The requested property could not be found.</p>
           <Button
             onClick={() => router.push('/dashboard/properties')}
-            className="bg-cyan-600 hover:bg-cyan-700"
+            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
           >
             Back to Properties
           </Button>
@@ -596,7 +596,7 @@ export default function EditPropertyPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white"
+              className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-cyan-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

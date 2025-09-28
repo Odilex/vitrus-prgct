@@ -151,7 +151,7 @@ export default function ClientsManagement() {
             <h1 className="text-3xl font-bold text-white">Clients Management</h1>
             <p className="text-gray-400 mt-2">Manage client relationships and track engagement</p>
           </div>
-          <Button className="bg-cyan-600 hover:bg-cyan-700">
+          <Button className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-lg hover:shadow-cyan-500/25 transition-all duration-300">
             <Plus className="mr-2 h-4 w-4" />
             Add New Client
           </Button>
@@ -399,7 +399,7 @@ export default function ClientsManagement() {
               >
                 Close
               </Button>
-              <Button className="bg-cyan-600 hover:bg-cyan-700">
+              <Button className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-lg hover:shadow-cyan-500/25 transition-all duration-300">
                 Edit Client
               </Button>
             </DialogFooter>

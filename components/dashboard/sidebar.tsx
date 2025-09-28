@@ -124,7 +124,7 @@ export default function DashboardSidebar() {
                 className={cn(
                   "w-full justify-start text-left",
                   isActive 
-                    ? "bg-cyan-600 text-white hover:bg-cyan-700" 
+                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-700 hover:to-blue-700 shadow-lg hover:shadow-cyan-500/25" 
                     : "text-slate-300 hover:text-white hover:bg-slate-800",
                   isCollapsed && "px-2"
                 )}

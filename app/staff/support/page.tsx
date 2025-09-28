@@ -273,7 +273,7 @@ const SupportTickets = () => {
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-400 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => window.location.reload()} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
             Retry
           </Button>
         </div>
@@ -300,7 +300,7 @@ const SupportTickets = () => {
               </Button>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
                     <Plus className="h-4 w-4 mr-2" />
                     New Ticket
                   </Button>
@@ -377,7 +377,7 @@ const SupportTickets = () => {
                     <Button variant="outline" className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
                       Cancel
                     </Button>
-                    <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
                       Create Ticket
                     </Button>
                   </div>

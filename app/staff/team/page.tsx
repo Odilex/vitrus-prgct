@@ -319,7 +319,7 @@ const TeamManagement = () => {
               </Dialog>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
                     <UserPlus className="h-4 w-4 mr-2" />
                     Add Member
                   </Button>
@@ -378,7 +378,7 @@ const TeamManagement = () => {
                     <Button variant="outline" className="bg-slate-800 border-slate-700 text-white hover:bg-slate-700">
                       Cancel
                     </Button>
-                    <Button className="bg-blue-600 hover:bg-blue-700">
+                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/25 transition-all duration-300">
                       Send Invitation
                     </Button>
                   </div>
