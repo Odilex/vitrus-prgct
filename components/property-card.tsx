@@ -168,7 +168,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         
         <Button 
           onClick={handleClick}
-          className="w-full bg-cyan-600 hover:bg-cyan-700 text-white"
+          className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white shadow-lg hover:shadow-cyan-500/25 transition-all duration-300"
         >
           <Eye className="h-4 w-4 mr-2" />
           View Virtual Tour
