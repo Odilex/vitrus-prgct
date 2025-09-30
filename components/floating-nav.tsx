@@ -1,132 +1,186 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { Home, Info, ImageIcon, MessageSquare, Menu, X, Users, Layers } from "lucide-react"
+import { useState, useEffect } from 'react'
+import { Home, Building, Users, Phone, Menu, X } from 'lucide-react'
+
+interface NavItem {
+  id: string
+  label: string
+  icon: React.ReactNode
+}
+
+const navItems: NavItem[] = [
+  {
+    id: 'hero',
+    label: 'Home',
+    icon: <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+  },
+  {
+    id: 'portfolio',
+    label: 'Portfolio',
+    icon: <Building className="w-4 h-4 sm:w-5 sm:h-5" />
+  },
+  {
+    id: 'about',
+    label: 'About',
+    icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />
+  },
+  {
+    id: 'contact',
+    label: 'Contact',
+    icon: <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
+  }
+]
 
 export default function FloatingNav() {
   const [isVisible, setIsVisible] = useState(false)
-  const [activeSection, setActiveSection] = useState("hero")
+  const [activeSection, setActiveSection] = useState('hero')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show nav after scrolling down 300px to avoid overlapping with hero content
-      if (window.scrollY > 300) {
-        setIsVisible(true)
-      } else {
-        setIsVisible(false)
-      }
+      const scrollPosition = window.scrollY
+      setIsVisible(scrollPosition > 80)
 
-      // Update active section based on scroll position
-      const sections = ["hero", "about", "services", "portfolio", "testimonials", "contact"]
-      const scrollPosition = window.scrollY + 100
-
+      // Update active section based on scroll position with better detection
+      const sections = ['hero', 'portfolio', 'about', 'how-it-works', 'services', 'testimonials', 'contact']
+      const aboutRelatedSections = ['about', 'how-it-works', 'services', 'testimonials']
+      let currentSection = 'hero' // default
+      
       for (const section of sections) {
         const element = document.getElementById(section)
         if (element) {
-          const { offsetTop, offsetHeight } = element
-          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
-            setActiveSection(section)
-            break
+          const rect = element.getBoundingClientRect()
+          const offset = window.innerHeight * 0.3 // 30% of viewport height
+          if (rect.top <= offset && rect.bottom >= offset) {
+            // Map process, services, testimonials to about for navigation highlighting
+            if (aboutRelatedSections.includes(section)) {
+              currentSection = 'about'
+            } else {
+              currentSection = section
+            }
           }
         }
       }
+      
+      setActiveSection(currentSection)
     }
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    // Close mobile menu on scroll
+    const handleScrollClose = () => {
+      if (isMenuOpen) {
+        setIsMenuOpen(false)
+      }
+    }
 
-  const navItems = [
-    { id: "hero", label: "Home", icon: <Home className="w-4 h-4" /> },
-    { id: "portfolio", label: "Portfolio", icon: <ImageIcon className="w-4 h-4" /> },
-    { id: "about", label: "About", icon: <Users className="w-4 h-4" /> },
-    { id: "services", label: "Services", icon: <Layers className="w-4 h-4" /> },
-    { id: "testimonials", label: "Testimonials", icon: <MessageSquare className="w-4 h-4" /> },
-    { id: "contact", label: "Contact", icon: <MessageSquare className="w-4 h-4" /> },
-  ]
+    // Close mobile menu on resize
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && isMenuOpen) {
+        setIsMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('scroll', handleScrollClose, { passive: true })
+    window.addEventListener('resize', handleResize)
+    
+    // Initial call
+    handleScroll()
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('scroll', handleScrollClose)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [isMenuOpen])
 
   return (
-    <div>
-      {isVisible && (
-        <div className="fixed top-6 left-[25%] transform -translate-x-1/2 z-50">
-          <div className="flex md:block flex-row-reverse items-center fixed md:static top-4 right-4 z-[100] md:z-50 w-auto px-2 sm:px-4" style={{gap: 8}}>
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className="md:hidden p-2.5 text-white rounded-full bg-[#000423] hover:bg-[#1a1e3a] transition-colors duration-300"
-              aria-label="Open navigation menu"
-              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <div className="hidden md:flex bg-[#000423]/70 backdrop-blur-lg border border-white/10 rounded-full px-3 py-2 shadow-lg shadow-black/10 md:static items-center">
-              <div className="flex items-center space-x-3">
-                {navItems.map((item, idx) => (
-                  <a
-                    key={item.id || idx}
-                    href={`#${item.id}`}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center ${
-                      activeSection === item.id
-                        ? "bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white shadow-sm"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    {item.icon}
-                    <span className="ml-2 hidden lg:inline">{item.label}</span>
-                  </a>
-                ))}
-              </div>
-              <div className="ml-4 pl-4 border-l border-white/20">
-                <a
-                  href="#contact"
-                  className="px-4 py-2 bg-white text-[#000423] rounded-full text-sm font-medium hover:shadow-md hover:shadow-white/10 transition-all duration-300"
-                >
-                  Book a Demo
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile menu */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 bg-[#000423]/90 backdrop-blur-md z-50 flex items-center justify-center">
-          <button
-            onClick={() => setIsMenuOpen(false)}
-            className="absolute top-6 right-6 text-white p-2.5 hover:bg-white/10 rounded-full transition-colors duration-300"
-            aria-label="Close navigation menu"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          <div className="flex flex-col items-center space-y-4 sm:space-y-6 w-full px-6 max-h-[80vh] overflow-y-auto py-12">
-            {navItems.map((item, idx) => (
+    <>
+      {/* Desktop floating nav */}
+      <div className={`fixed top-4 sm:top-6 left-1/2 transform -translate-x-1/2 z-50 transition-all duration-500 ease-out hidden md:block ${
+        isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-8 scale-95 pointer-events-none'
+      }`}>
+        <nav className="bg-gradient-to-r from-white/10 via-white/5 to-white/10 backdrop-blur-xl rounded-full px-3 sm:px-6 py-2 sm:py-3 shadow-2xl border border-white/20 hover:border-white/30 transition-all duration-300 hover:from-white/15 hover:via-white/10 hover:to-white/15">
+          <div className="flex items-center space-x-1">
+            {navItems.map((item) => (
               <a
-                key={item.id || idx}
+                key={item.id}
                 href={`#${item.id}`}
-                className={`text-lg sm:text-xl font-medium flex items-center px-6 py-3 rounded-full w-full justify-center ${
+                className={`group flex items-center px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 hover:scale-105 ${
                   activeSection === item.id
-                    ? "bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white"
-                    : "text-white hover:bg-white/10"
+                    ? 'bg-white text-black shadow-lg'
+                    : 'text-white hover:bg-white/15 hover:text-white'
                 }`}
-                onClick={() => setIsMenuOpen(false)}
               >
-                {item.icon}
-                <span className="ml-3">{item.label}</span>
+                <span className="transition-transform duration-200 group-hover:scale-110">{item.icon}</span>
+                <span className="ml-2 hidden lg:inline transition-all duration-200">{item.label}</span>
               </a>
             ))}
-
             <a
               href="#contact"
-              className="mt-4 px-8 py-3 bg-white text-[#000423] rounded-full font-medium hover:shadow-md hover:shadow-white/10 transition-all duration-300"
+              className="ml-2 px-4 sm:px-6 py-2 bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] hover:from-[#9E9EAD] hover:to-[#C5C5D3] text-white rounded-full text-xs sm:text-sm font-medium hover:shadow-xl hover:scale-105 transition-all duration-300 transform"
+            >
+              <span className="hidden sm:inline">Book a Demo</span>
+              <span className="sm:hidden">Demo</span>
+            </a>
+          </div>
+        </nav>
+      </div>
+
+      {/* Mobile menu button */}
+      <button
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        className={`fixed top-4 sm:top-6 right-4 sm:right-6 z-50 md:hidden p-3 sm:p-4 bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-xl rounded-full border border-white/20 hover:border-white/40 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-110 active:scale-95 hover:from-white/15 hover:via-white/10 hover:to-white/15 ${
+          isVisible ? 'opacity-100 translate-y-0 rotate-0' : 'opacity-0 -translate-y-4 rotate-180 pointer-events-none'
+        }`}
+        aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+      >
+        <div className="w-5 h-5 sm:w-6 sm:h-6 flex flex-col justify-center items-center relative">
+          {isMenuOpen ? (
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-white transition-all duration-300 rotate-0" />
+          ) : (
+            <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-white transition-all duration-300" />
+          )}
+        </div>
+      </button>
+
+      {/* Mobile menu */}
+      <div className={`fixed inset-0 z-40 md:hidden transition-all duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <div 
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-300" 
+          onClick={() => setIsMenuOpen(false)} 
+        />
+        <div className={`absolute top-16 sm:top-20 right-4 sm:right-6 bg-gradient-to-br from-white/10 via-white/5 to-white/10 backdrop-blur-2xl rounded-3xl p-4 sm:p-6 border border-white/20 min-w-[280px] sm:min-w-[320px] shadow-2xl transition-all duration-500 transform ${
+          isMenuOpen ? 'translate-y-0 opacity-100 scale-100 rotate-0' : '-translate-y-8 opacity-0 scale-95 rotate-3'
+        }`}>
+          <div className="flex flex-col space-y-1">
+            {navItems.map((item, index) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className={`group text-base sm:text-lg font-medium flex items-center px-4 sm:px-5 py-3 sm:py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+                  activeSection === item.id
+                    ? 'bg-gradient-to-r from-[#8E8E9D] to-[#B5B5C3] text-white shadow-lg'
+                    : 'text-white hover:bg-white/15 hover:text-white'
+                }`}
+                onClick={() => setIsMenuOpen(false)}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <span className="transition-transform duration-200 group-hover:scale-110">{item.icon}</span>
+                <span className="ml-3 sm:ml-4 transition-all duration-200">{item.label}</span>
+              </a>
+            ))}
+            <div className="h-px bg-white/10 my-2 sm:my-3" />
+            <a
+              href="#contact"
+              className="px-5 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-white to-gray-100 hover:from-gray-100 hover:to-white text-black rounded-2xl font-semibold hover:shadow-xl transition-all duration-300 text-center hover:scale-[1.02] active:scale-[0.98] transform"
               onClick={() => setIsMenuOpen(false)}
             >
               Book a Demo
             </a>
           </div>
         </div>
-      )}
-    </div>
+      </div>
+    </>
   )
 }
