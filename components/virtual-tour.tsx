@@ -89,7 +89,7 @@ function getEmbedUrl(url: string, tourType: TourType): string {
       // Enhanced mobile-friendly parameters for Matterport
       const separator = url.includes('?') ? '&' : '?';
       const mobileParams = isMobile 
-        ? 'nt=0&brand=0&help=0&hr=0&qs=1&sb=0&mls=1&mt=0&search=0&kb=0&dh=0&ts=0&pin=0&gt=0&st=0'
+        ? 'nt=0&brand=0&help=0&hr=0&qs=1&sb=0&mls=1&mt=0&search=0&kb=0&ts=0&pin=0&gt=0&st=0'
         : 'nt=0&brand=0&help=0&hr=0&qs=1&sb=0&mls=1';
       
       return `${url}${separator}${mobileParams}`;
@@ -128,13 +128,13 @@ export default function VirtualTour({
   onTourStart,
   onTourEnd,
   onError,
-  autoplay = false,
+  autoplay = false, // Keep parameter for backward compatibility
   maxRetries = 3
 }: VirtualTourProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [currentError, setCurrentError] = useState<TourError | null>(null);
-  const [isPlaying, setIsPlaying] = useState(autoplay);
+  const [isPlaying, setIsPlaying] = useState(false); // Always start with false regardless of autoplay prop
   const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [retryCount, setRetryCount] = useState(0);

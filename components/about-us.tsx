@@ -156,20 +156,7 @@ export default function AboutUs() {
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-          transition={{ duration: 0.5, delay: 1.1 }}
-          className="mt-20 text-center"
-        >
-          <a
-            href="#contact"
-            className="inline-flex items-center px-8 py-3 bg-white/10 hover:bg-white/15 text-white rounded-full transition-all duration-300 backdrop-blur-sm group"
-          >
-            Meet Our Team
-            <span className="ml-2 transform transition-transform duration-300 group-hover:translate-x-1">→</span>
-          </a>
-        </motion.div>
+
       </div>
     </section>
   )

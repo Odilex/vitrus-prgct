@@ -112,7 +112,7 @@ export default function Testimonials() {
             href="#contact"
             className="inline-flex items-center px-8 py-3 bg-white/10 hover:bg-white/15 text-white rounded-full transition-all duration-300 backdrop-blur-sm group"
           >
-            Read More Success Stories
+            Write Your Testimonial
             <span className="ml-2 transform transition-transform duration-300 group-hover:translate-x-1">→</span>
           </a>
         </motion.div>

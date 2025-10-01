@@ -1,8 +1,8 @@
 "use client"
 
-import { useRef } from "react"
-import { motion, useInView } from "framer-motion"
-import { ArrowRight, Eye } from "lucide-react"
+import { useRef, useState } from "react"
+import { motion, useInView, AnimatePresence } from "framer-motion"
+import { ArrowRight, Eye, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -11,14 +11,40 @@ export default function Portfolio() {
   const isInView = useInView(ref, { once: true, amount: 0.2 })
   const router = useRouter()
 
+  const [showAlert, setShowAlert] = useState(false)
+  
   const handleDiscoverClick = () => {
-    // For now, show alert for coming soon discovery page
-    alert('Coming Soon: Discovery Page!')
-    // Later this will be: router.push('/discovery')
+    setShowAlert(true)
+  }
+  
+  const handleCloseAlert = () => {
+    setShowAlert(false)
   }
 
   return (
     <section ref={ref} id="portfolio" className="py-24 bg-[#000423] relative overflow-hidden">
+      {/* Coming Soon Alert */}
+      <AnimatePresence>
+        {showAlert && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            onClick={handleCloseAlert}
+          >
+            <div className="absolute inset-0 bg-black/70" />
+            <div className="relative bg-gradient-to-r from-[#0A0E2E] to-[#151A3A] border border-[#3A3A5A] rounded-lg p-8 max-w-md text-center text-white shadow-lg">
+              <button className="absolute top-2 right-2 text-white hover:text-gray-200" onClick={handleCloseAlert}>
+                <X size={20} />
+              </button>
+              <h3 className="text-2xl font-bold mb-2">Coming Soon</h3>
+              <p className="text-lg">Our discovery page is currently under development. Check back soon!</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       {/* Background effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(142,142,157,0.05),transparent_70%)] z-0" />
 
@@ -87,9 +113,9 @@ export default function Portfolio() {
                  <iframe 
                    width="100%" 
                    height="100%" 
-                   src="https://my.matterport.com/show/?m=asUPJZMybAg&brand=0&help=0&hr=0&sb=0&qs=1&nt=0" 
+                   src="https://my.matterport.com/show/?m=asUPJZMybAg&brand=0&help=0&hr=0&sb=0&qs=1&nt=0&play=0" 
                    frameBorder="0" 
-                   allow="autoplay; web-share; xr-spatial-tracking"
+                   allow="web-share; xr-spatial-tracking"
                    className="w-full h-full rounded-t-2xl pointer-events-none"
                  />
                  <div className="absolute top-4 right-4">
