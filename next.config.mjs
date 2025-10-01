@@ -9,6 +9,77 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.vitrus.rw',
+          },
+        ],
+        destination: 'https://vitrus.rw/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'vitrus.rw',
+          },
+        ],
+        missing: [
+          {
+            type: 'header',
+            key: 'x-forwarded-proto',
+            value: 'https',
+          },
+        ],
+        destination: 'https://vitrus.rw/:path*',
+        permanent: true,
+      },
+    ];
+  },
+  // Add canonical URL support
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/:path*',
+          has: [
+            {
+              type: 'host',
+              value: 'vitrus.rw',
+            },
+          ],
+          headers: {
+            'Link': '<https://vitrus.rw/:path*>; rel="canonical"',
+          },
+        },
+      ],
+    };
+  },
+  // Add canonical URL support
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/:path*',
+          has: [
+            {
+              type: 'host',
+              value: 'vitrus.rw',
+            },
+          ],
+          headers: {
+            'Link': '<https://vitrus.rw/:path*>; rel="canonical"',
+          },
+        },
+      ],
+    };
+  },
   async headers() {
     return [
       {

@@ -74,7 +74,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="canonical" href={SITE_URL} />
+        {/* Dynamic canonical tag will be handled by Next.js based on the current path */}
         <meta name="robots" content="index,follow" />
         <Script id="ld-org-json" type="application/ld+json" strategy="afterInteractive">
           {JSON.stringify({
