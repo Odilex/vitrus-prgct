@@ -1,0 +1,78 @@
+[33mcommit 0e9672e79583cc5351aabebc14c6d3fc0ba12a31[m
+Author: odilex <didierjunior75@gmail.com>
+Date:   Wed Sep 24 13:29:36 2025 +0200
+
+    2
+
+[33mcommit bd995710817be67d978a6400a4fba14e46bfde9b[m
+Author: odilex <didierjunior75@gmail.com>
+Date:   Fri Sep 19 14:30:19 2025 +0200
+
+    feat(navigation): restructure navigation flow and improve UI
+    
+    - Reorder page sections and navigation items for better user flow
+    - Enhance floating nav with responsive design and smooth animations
+    - Improve policy consent modal styling and layout
+    - Update active section detection logic for better UX
+
+[33mcommit 88bf5ff706f55bf8edb4b49be72ef0d9313f3459[m
+Author: odilex <didierjunior75@gmail.com>
+Date:   Fri Sep 19 07:15:08 2025 +0200
+
+    refactor(components): simplify floating nav and update styles
+    
+    - Refactor floating navigation component to be more maintainable
+    - Update styling to use consistent design system
+    - Remove unused code and simplify mobile menu implementation
+    - Add new badge variants for success and warning states
+    - Update Matterport iframe URLs and add allowFullScreen attribute
+    - Change API base URL from port 3000 to 5000
+
+[33mcommit e216eb204b187c278a2c330bf706924e53311f94[m
+Merge: 23cda7e dfd52c1
+Author: odilex <didierjunior75@gmail.com>
+Date:   Thu Sep 18 15:20:35 2025 +0200
+
+    Merge branch 'main' of https://github.com/Odilex/vitrus-prgct
+
+[33mcommit 23cda7ec53d22223be0c38909adf5b9c2f7ce536[m
+Author: odilex <didierjunior75@gmail.com>
+Date:   Thu Sep 18 15:17:23 2025 +0200
+
+    navbar changed
+
+[33mcommit ed3a2f77f5e45e0d18b3c30dceb5d2e84b149122[m
+Author: murenz1 <murenzidan1@gmail.com>
+Date:   Sat Sep 13 01:46:44 2025 +0200
+
+    portfolio v1
+
+[33mcommit d5e5306fd98dd6240064109aceadd06a9a39867f[m
+Author: odilex <didierjunior75@gmail.com>
+Date:   Sat Sep 6 13:08:50 2025 +0200
+
+    backend done
+
+[33mcommit b15ff4c595ba4286c9d3b57705081add5e4df286[m
+Author: murenz1 <murenzidan1@gmail.com>
+Date:   Fri Jul 25 19:45:18 2025 +0200
+
+    ..
+
+[33mcommit 4c3918ac5f6202532a9808813e4521b55d227109[m
+Author: murenz1 <murenzidan1@gmail.com>
+Date:   Fri Jul 25 18:39:31 2025 +0200
+
+    ..
+
+[33mcommit 4c9458177c5427150a4607489a7ae4f488ef2bcd[m
+Author: odilex <didierjunior75@gmail.com>
+Date:   Thu Jul 17 16:00:05 2025 +0200
+
+    potfolio removed
+
+[33mcommit 3ebf0e614957b5b883bcbf2d6084113dbd71fc9d[m
+Author: odilex <didierjunior75@gmail.com>
+Date:   Wed Apr 30 14:58:07 2025 +0200
+
+    first commit
